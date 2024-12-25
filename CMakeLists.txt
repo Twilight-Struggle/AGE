@@ -16,7 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)  # GNU拡張を無効化
 add_library(agricola_core
     src/game/resource.cpp
     src/game/field.cpp
-    # src/game/farm.cpp
+    src/game/farm.cpp
 )
 
 # インクルードディレクトリの設定
@@ -35,22 +35,22 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 # テストの設定
-enable_testing()
-add_executable(resource_test tests/resource_test.cpp)
-target_link_libraries(resource_test
-    PRIVATE
-        GTest::gtest_main
-        agricola_core  # あなたのゲームエンジンライブラリ
-)
-add_executable(field_test tests/field_test.cpp)
-target_link_libraries(field_test
-    PRIVATE
-        GTest::gtest_main
-        agricola_core
-)
-
 include(GoogleTest)
-gtest_discover_tests(resource_test)
-gtest_discover_tests(field_test)
+enable_testing()
+# テスト追加用の関数を定義
+function(add_agricola_test TEST_NAME)
+    add_executable(${TEST_NAME} tests/${TEST_NAME}.cpp)
+    target_link_libraries(${TEST_NAME}
+        PRIVATE
+            GTest::gtest_main
+            agricola_core
+    )
+    gtest_discover_tests(${TEST_NAME})
+endfunction()
+
+# テストの追加
+add_agricola_test(resource_test)
+add_agricola_test(field_test)
+add_agricola_test(farm_test)
 
 # add_executable(hello_world src/main.cpp)
