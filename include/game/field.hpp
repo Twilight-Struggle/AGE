@@ -1,4 +1,4 @@
-#include "Resource.hpp"
+#include "resource.hpp"
 #include <vector>
 
 enum class FieldType {
@@ -6,9 +6,9 @@ enum class FieldType {
     WOOD_ROOM,
     CLAY_ROOM,
     STONE_ROOM,
+    FENCED,
     FIELD,
-    PASTURE,
-    OTHER,
+    PASTURE
 };
 
 class Field {

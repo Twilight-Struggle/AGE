@@ -1,4 +1,4 @@
-#include "game/Resource.hpp"
+#include "game/resource.hpp"
 
 Resource::Resource(ResourceType type, int amount) : type(type), amount(amount) {}
 

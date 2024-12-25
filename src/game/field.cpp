@@ -1,4 +1,4 @@
-#include "game/Field.hpp"
+#include "game/field.hpp"
 
 Field::Field() : type(FieldType::EMPTY), contents() {}
 

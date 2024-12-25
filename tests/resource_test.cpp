@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "game/Resource.hpp"
+#include "game/resource.hpp"
 
 class ResourceTest : public ::testing::Test {
 protected:

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "game/Field.hpp"
+#include "game/field.hpp"
 
 class FieldTest : public ::testing::Test {
 protected:

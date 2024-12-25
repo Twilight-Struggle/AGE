@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
+set(CMAKE_GENERATOR "Unix Makefiles" CACHE INTERNAL "" FORCE)
 
 # コンパイラを設定（CMakeプロジェクトの設定前に行う必要があります）
 set(CMAKE_C_COMPILER clang)
@@ -13,9 +14,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)  # GNU拡張を無効化
 
 add_library(agricola_core
-    src/game/Resource.cpp
-    src/game/Field.cpp
-    # src/game/Farm.cpp
+    src/game/resource.cpp
+    src/game/field.cpp
+    # src/game/farm.cpp
 )
 
 # インクルードディレクトリの設定
@@ -35,13 +36,13 @@ FetchContent_MakeAvailable(googletest)
 
 # テストの設定
 enable_testing()
-add_executable(resource_test tests/ResourceTest.cpp)
+add_executable(resource_test tests/resource_test.cpp)
 target_link_libraries(resource_test
     PRIVATE
         GTest::gtest_main
         agricola_core  # あなたのゲームエンジンライブラリ
 )
-add_executable(field_test tests/FieldTest.cpp)
+add_executable(field_test tests/field_test.cpp)
 target_link_libraries(field_test
     PRIVATE
         GTest::gtest_main
