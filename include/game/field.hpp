@@ -8,7 +8,8 @@ enum class FieldType {
     STONE_ROOM,
     FENCED,
     FIELD,
-    PASTURE
+    PASTURE,
+    STABLE,
 };
 
 class Field {
