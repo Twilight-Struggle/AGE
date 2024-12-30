@@ -5,15 +5,22 @@
 
 Farm::Farm() : numRooms(2), numStables(0), roomType(RoomType::WOOD) {
   // 3x5のグリッドを初期化
-  fields.resize(3, std::vector<Field>(5));
-  fields[2][0].buildWoodRoom();
-  fields[1][0].buildWoodRoom();
+  for (int x = 0; x < 3; x++) {
+    for (int y = 0; y < 5; y++) {
+      fields[Position(x, y)] = Field();
+    }
+  }
+  
+  // 初期の木の部屋を建設
+  fields[Position(2, 0)].buildWoodRoom();
+  fields[Position(1, 0)].buildWoodRoom();
 }
 
 bool Farm::canPlace(int x, int y) const {
+  Position pos(x, y);
   // 座標が有効範囲内かチェック
   return x >= 0 && x < 3 && y >= 0 && y < 5 &&
-         fields[x][y].getType() == FieldType::EMPTY;
+         fields.at(pos).getType() == FieldType::EMPTY;
 }
 
 bool Farm::isFenceAt(int x, int y, FencePosition::Edge edge) const {
@@ -30,8 +37,8 @@ std::vector<std::set<Position>> Farm::getEnclosedAreas(
   std::set<Position> visited;
 
   // 各マスについて
-  for (int x = 0; x < fields.size(); x++) {
-    for (int y = 0; y < fields[0].size(); y++) {
+  for (int x = 0; x < Position::WIDTH; x++) {
+    for (int y = 0; y < Position::HEIGHT; y++) {
       Position pos(x, y);
       // すでに訪問済みの場合はスキップ
       if (visited.find(pos) != visited.end()) continue;
@@ -51,8 +58,8 @@ std::vector<std::set<Position>> Farm::getEnclosedAreas(
 std::pair<bool, std::set<Position>> Farm::isEnclosed(
     const Position& start, const std::set<FencePosition>& fences) const {
   // スタート地点のチェックを追加
-  if (fields[start.x][start.y].getType() != FieldType::EMPTY && 
-      fields[start.x][start.y].getType() != FieldType::STABLE) {
+  if (fields.at(start).getType() != FieldType::EMPTY && 
+      fields.at(start).getType() != FieldType::STABLE) {
     return {false, std::set<Position>()};
   }
 
@@ -122,9 +129,10 @@ std::pair<bool, std::set<Position>> Farm::isEnclosed(
       }
 
       // 境界チェック（柵がない場合のみ）
-      if (next.x < 0 || next.x >= fields.size() || next.y < 0 ||
-          next.y >= fields[0].size() ||
-          (fields[next.x][next.y].getType() != FieldType::EMPTY && fields[next.x][next.y].getType() != FieldType::STABLE)) {
+      if (next.x < 0 || next.x >= Position::WIDTH || next.y < 0 ||
+          next.y >= Position::HEIGHT ||
+          (fields.at(Position(next.x, next.y)).getType() != FieldType::EMPTY && 
+           fields.at(Position(next.x, next.y)).getType() != FieldType::STABLE)) {
         hasEnclosedPath = false;  // 囲まれていない
         continue;
       }
@@ -140,10 +148,11 @@ std::pair<bool, std::set<Position>> Farm::isEnclosed(
   return {hasEnclosedPath, area};
 }
 
-bool Farm::isValidEnclosure(const std::vector<std::set<Position>>& newEnclosure, 
+std::pair<bool, std::vector<std::set<Position>>> Farm::isValidEnclosure(
+                           const std::vector<std::set<Position>>& newEnclosure, 
                            const std::set<FencePosition>& tempFences) const {
     // 囲まれた領域がない場合は false
-    if (newEnclosure.empty()) return false;
+    if (newEnclosure.empty()) return {false, std::vector<std::set<Position>>()};
 
     // 複数の領域がある場合、連結性をチェック
     if (newEnclosure.size() > 1) {
@@ -185,7 +194,7 @@ bool Farm::isValidEnclosure(const std::vector<std::set<Position>>& newEnclosure,
         
         // すべての領域が訪問されているかチェック
         if (!std::all_of(visited.begin(), visited.end(), [](bool v) { return v; })) {
-            return false;  // 連結していない領域があればfalse
+            return {false, std::vector<std::set<Position>>()};  // 連結していない領域があればfalse
         }
     }
 
@@ -229,20 +238,20 @@ bool Farm::isValidEnclosure(const std::vector<std::set<Position>>& newEnclosure,
     }
 
     // 必要な柵の数と実際の柵の数が一致するかチェック
-    return requiredFences == tempFences;
+    return {requiredFences == tempFences, newEnclosure};
 }
 
-bool Farm::canBuildFence(const std::vector<FencePosition>& newFences) const {
+std::pair<bool, std::vector<std::set<Position>>> Farm::canBuildFence(const std::vector<FencePosition>& newFences) const {
   // 既存の柵と新しい柵の合計が15個以下であることを確認
-  if (fences.size() + newFences.size() > 15) return false;
+  if (fences.size() + newFences.size() > 15) return {false, std::vector<std::set<Position>>()};
 
   // 基本的なバリデーション
   for (const auto& fence : newFences) {
     if (fence.getX() < 0 || fence.getX() >= 3 || fence.getY() < 0 ||
         fence.getY() >= 5)
-      return false;
+      return {false, std::vector<std::set<Position>>()};
     // 既存の柵と重複している場合はfalse
-    if (isFenceAt(fence.getX(), fence.getY(), fence.getEdge())) return false;
+    if (isFenceAt(fence.getX(), fence.getY(), fence.getEdge())) return {false, std::vector<std::set<Position>>()};
   }
 
   // すべての柵を一時的に追加してシミュレーション
@@ -251,14 +260,22 @@ bool Farm::canBuildFence(const std::vector<FencePosition>& newFences) const {
 
   // 新しい囲いの正当性をチェック
   auto newEnclosure = getEnclosedAreas(tempFences);
-  return isValidEnclosure(newEnclosure, tempFences);
+  auto [isValid, returnedEnclosure] = isValidEnclosure(newEnclosure, tempFences);
+  return {isValid, returnedEnclosure};
 }
 
 bool Farm::buildFence(const std::vector<FencePosition>& newFences) {
-  if (!canBuildFence(newFences)) return false;
+  auto [isValid, returnedEnclosure] = canBuildFence(newFences);
+  if (isValid) return false;
 
   // すべての柵を一度に追加
   fences.insert(fences.end(), newFences.begin(), newFences.end());
+  for (const auto& enclosure : returnedEnclosure) {
+    for (const auto& pos : enclosure) {
+      fields[pos].fence();
+    }
+  }
+  enclosures = returnedEnclosure;
   return true;
 }
 
@@ -269,32 +286,46 @@ bool Farm::canBuildRoom(int x, int y, RoomType roomType) const {
   // 上下左右に隣接するマスをチェック
   bool hasAdjacentRoom = false;
   // 上のマス
-  if (x > 0 && isRoom(fields[x - 1][y].getType())) {
-    hasAdjacentRoom = true;
+  if (x > 0) {
+    Position pos(x - 1, y);
+    if (isRoom(fields.at(pos).getType())) {
+      hasAdjacentRoom = true;
+    }
   }
   // 下のマス
-  if (x < 2 && isRoom(fields[x + 1][y].getType())) {
-    hasAdjacentRoom = true;
+  if (x < 2) {
+    Position pos(x + 1, y);
+    if (isRoom(fields.at(pos).getType())) {
+      hasAdjacentRoom = true;
+    }
   }
   // 左のマス
-  if (y > 0 && isRoom(fields[x][y - 1].getType())) {
-    hasAdjacentRoom = true;
+  if (y > 0) {
+    Position pos(x, y - 1);
+    if (isRoom(fields.at(pos).getType())) {
+      hasAdjacentRoom = true;
+    }
   }
   // 右のマス
-  if (y < 4 && isRoom(fields[x][y + 1].getType())) {
-    hasAdjacentRoom = true;
+  if (y < 4) {
+    Position pos(x, y + 1);
+    if (isRoom(fields.at(pos).getType())) {
+      hasAdjacentRoom = true;
+    }
   }
   return hasAdjacentRoom;
 }
 
 bool Farm::buildRoom(int x, int y, RoomType roomType) {
   if (!canBuildRoom(x, y, roomType)) return false;
+  
+  Position pos(x, y);
   if (roomType == RoomType::WOOD) {
-    fields[x][y].buildWoodRoom();
+    fields[pos].buildWoodRoom();
   } else if (roomType == RoomType::CLAY) {
-    fields[x][y].buildClayRoom();
+    fields[pos].buildClayRoom(); 
   } else if (roomType == RoomType::STONE) {
-    fields[x][y].buildStoneRoom();
+    fields[pos].buildStoneRoom();
   }
   numRooms++;
   return true;
@@ -304,11 +335,9 @@ bool Farm::canPlowField(int x, int y) const {
   if (!canPlace(x, y)) return false;
 
   // まずフィールド内にFIELDが存在するかチェック
-  bool hasAnyField =
-      std::any_of(fields.begin(), fields.end(), [](const auto& row) {
-        return std::any_of(row.begin(), row.end(), [](const auto& field) {
-          return field.getType() == FieldType::FIELD;
-        });
+  bool hasAnyField = std::any_of(fields.begin(), fields.end(), 
+      [](const auto& field_pair) {
+        return field_pair.second.getType() == FieldType::FIELD;
       });
   // FIELDが一つも無い場合はtrueを返す
   if (!hasAnyField) return true;
@@ -316,26 +345,38 @@ bool Farm::canPlowField(int x, int y) const {
   // 上下左右に隣接するマスをチェック
   bool hasAdjacentField = false;
   // 上のマス
-  if (x > 0 && fields[x - 1][y].getType() == FieldType::FIELD) {
-    hasAdjacentField = true;
+  if (x > 0) {
+    Position pos(x - 1, y);
+    if (fields.at(pos).getType() == FieldType::FIELD) {
+      hasAdjacentField = true;
+    }
   }
-  // 下のマス
-  if (x < 2 && fields[x + 1][y].getType() == FieldType::FIELD) {
-    hasAdjacentField = true;
+  // 下のマス 
+  if (x < 2) {
+    Position pos(x + 1, y);
+    if (fields.at(pos).getType() == FieldType::FIELD) {
+      hasAdjacentField = true;
+    }
   }
   // 左のマス
-  if (y > 0 && fields[x][y - 1].getType() == FieldType::FIELD) {
-    hasAdjacentField = true;
+  if (y > 0) {
+    Position pos(x, y - 1);
+    if (fields.at(pos).getType() == FieldType::FIELD) {
+      hasAdjacentField = true;
+    }
   }
   // 右のマス
-  if (y < 4 && fields[x][y + 1].getType() == FieldType::FIELD) {
-    hasAdjacentField = true;
+  if (y < 4) {
+    Position pos(x, y + 1);
+    if (fields.at(pos).getType() == FieldType::FIELD) {
+      hasAdjacentField = true;
+    }
   }
   return hasAdjacentField;
 }
 
 bool Farm::plowField(int x, int y) {
   if (!canPlowField(x, y)) return false;
-  fields[x][y].plow();
+  fields[Position(x, y)].plow();
   return true;
 }

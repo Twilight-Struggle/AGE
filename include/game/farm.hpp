@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <optional>
 #include <set>
+#include <map>
 
 enum class RoomType {
     WOOD,
@@ -11,6 +12,8 @@ enum class RoomType {
 };
 
 struct Position {
+    static const int WIDTH = 3;
+    static const int HEIGHT = 5;
     int x;
     int y;
     
@@ -83,8 +86,9 @@ private:
 
 class Farm {
 private:
-    std::vector<std::vector<Field>> fields;  // 3x5のグリッド
+    std::map<Position, Field> fields;  // 3x5のグリッド
     std::vector<FencePosition> fences;       // 建てられた柵の位置
+    std::vector<std::set<Position>> enclosures; // 牧場
     
     int numRooms;
     int numStables;
@@ -92,12 +96,12 @@ private:
 
     bool canPlace(int x, int y) const;
     bool canBuildRoom(int x, int y, RoomType roomType) const;
-    bool canBuildFence(const std::vector<FencePosition>& newFences) const;
+    std::pair<bool, std::vector<std::set<Position>>> canBuildFence(const std::vector<FencePosition>& newFences) const;
     bool canPlowField(int x, int y) const;
     bool isFenceAt(int x, int y, FencePosition::Edge edge) const;
     std::pair<bool, std::set<Position>> isEnclosed(const Position& start, const std::set<FencePosition>& fences) const;
     std::vector<std::set<Position>>  getEnclosedAreas(const std::set<FencePosition>& fences) const;
-    bool isValidEnclosure(const std::vector<std::set<Position>>& newEnclosure, 
+    std::pair<bool, std::vector<std::set<Position>>> isValidEnclosure(const std::vector<std::set<Position>>& newEnclosure, 
                            const std::set<FencePosition>& tempFences) const;
 
 public:

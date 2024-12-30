@@ -6,10 +6,10 @@ enum class FieldType {
     WOOD_ROOM,
     CLAY_ROOM,
     STONE_ROOM,
-    FENCED,
     FIELD,
     PASTURE,
     STABLE,
+    OTHER,
 };
 
 class Field {

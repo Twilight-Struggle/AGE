@@ -9,6 +9,7 @@ enum class ResourceType {
     BOAR,
     CATTLE,
     FOOD,
+    OTHER,
 };
 
 class Resource {
