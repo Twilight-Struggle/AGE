@@ -65,7 +65,6 @@ bool Field::addContent(const Resource& resource) {
         contents.push_back(resource);
         return true;
     }
-
 }
 
 bool Field::removeContent(const Resource& resource) {

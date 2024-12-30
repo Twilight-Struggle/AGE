@@ -154,6 +154,40 @@ TEST_F(FarmTest, FenceAndStable) {
   EXPECT_FALSE(farm.buildStable(1, 4));
 }
 
+TEST_F(FarmTest, LiveStock) {
+  // 柵がない場合は配置できない
+  std::map<size_t, Resource> placements = {
+    {0, Resource(ResourceType::SHEEP, 10)},
+    {1, Resource(ResourceType::BOAR, 10)},
+  };
+  EXPECT_FALSE(farm.placeLivestock(placements));
+
+  std::vector<FencePosition> fences = {
+    FencePosition::create(0, 4, FencePosition::Edge::TOP).value(),
+    FencePosition::create(0, 4, FencePosition::Edge::LEFT).value(),
+    FencePosition::create(1, 3, FencePosition::Edge::TOP).value(),
+    FencePosition::create(1, 4, FencePosition::Edge::TOP).value(),
+    FencePosition::create(1, 3, FencePosition::Edge::LEFT).value(),
+    FencePosition::create(2, 3, FencePosition::Edge::TOP).value(),
+    FencePosition::create(2, 4, FencePosition::Edge::TOP).value(),
+    FencePosition::create(1, 4, FencePosition::Edge::RIGHT).value(),
+    FencePosition::create(0, 4, FencePosition::Edge::RIGHT).value(),
+  };
+  // 有効な柵の配置
+  farm.buildFence(fences);
+  farm.buildStable(1, 3);
+
+  // 家畜が多すぎて入らない
+  EXPECT_FALSE(farm.placeLivestock(placements));
+
+  std::map<size_t, Resource> placements2 = {
+    {0, Resource(ResourceType::SHEEP, 2)},
+    {1, Resource(ResourceType::BOAR, 7)},
+  };
+  // ちょうど入る
+  EXPECT_TRUE(farm.placeLivestock(placements2));
+}
+
 TEST_F(FarmTest, BuildRooms) {
   // 木の部屋を建設
   EXPECT_TRUE(farm.buildRoom(0, 0, RoomType::WOOD));

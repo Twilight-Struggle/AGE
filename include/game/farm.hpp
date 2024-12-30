@@ -104,6 +104,9 @@ private:
     std::pair<bool, std::vector<std::set<Position>>> isValidEnclosure(const std::vector<std::set<Position>>& newEnclosure, 
                            const std::set<FencePosition>& tempFences) const;
     bool canBuildStable(int x, int y) const;
+    int getStableCount(const std::set<Position>& enclosure) const;
+    int getMaxCapacity(size_t enclosureIndex) const;
+    bool validateLivestockPlacement(const std::map<size_t, Resource>& placements) const;
 
 public:
     Farm();
@@ -111,6 +114,7 @@ public:
     bool buildFence(const std::vector<FencePosition>& newfences);
     bool plowField(int x, int y);
     bool buildStable(int x, int y);
+    bool placeLivestock(const std::map<size_t, Resource>& placements);
     // const参照を返すgetter
     const Field& getField(const Position& pos) const {
         return fields.at(pos);
