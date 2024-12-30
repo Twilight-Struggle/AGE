@@ -103,11 +103,13 @@ private:
     std::vector<std::set<Position>>  getEnclosedAreas(const std::set<FencePosition>& fences) const;
     std::pair<bool, std::vector<std::set<Position>>> isValidEnclosure(const std::vector<std::set<Position>>& newEnclosure, 
                            const std::set<FencePosition>& tempFences) const;
+    bool canBuildStable(int x, int y) const;
 
 public:
     Farm();
     bool buildRoom(int x, int y, RoomType roomType);
     bool buildFence(const std::vector<FencePosition>& newfences);
     bool plowField(int x, int y);
+    bool buildStable(int x, int y);
     // ...
 };

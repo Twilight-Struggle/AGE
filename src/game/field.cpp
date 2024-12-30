@@ -15,6 +15,10 @@ void Field::fence() {
     type = FieldType::PASTURE;
 }
 
+void Field::stable() {
+    type = FieldType::STABLE;
+}
+
 void Field::buildWoodRoom() {
     type = FieldType::WOOD_ROOM;
 }

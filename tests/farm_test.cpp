@@ -100,6 +100,38 @@ TEST_F(FarmTest, BuildFence) {
   EXPECT_FALSE(farm.buildFence(fences8));
 }
 
+TEST_F(FarmTest, FenceAndStable) {
+  std::vector<FencePosition> fences = {
+    FencePosition::create(0, 3, FencePosition::Edge::TOP).value(),
+    FencePosition::create(0, 3, FencePosition::Edge::LEFT).value(),
+    FencePosition::create(1, 3, FencePosition::Edge::LEFT).value(),
+    FencePosition::create(2, 3, FencePosition::Edge::TOP).value(),
+    FencePosition::create(2, 4, FencePosition::Edge::TOP).value(),
+    FencePosition::create(1, 4, FencePosition::Edge::RIGHT).value(),
+    FencePosition::create(0, 4, FencePosition::Edge::RIGHT).value(),
+    FencePosition::create(0, 4, FencePosition::Edge::TOP).value(),
+  };
+  // 有効な柵の配置
+  EXPECT_TRUE(farm.buildFence(fences));
+
+  // 建物などの上には建設できない
+  EXPECT_FALSE(farm.buildStable(1, 0));
+
+  // 柵の中に建設できる
+  EXPECT_TRUE(farm.buildStable(0, 3));
+
+  // 空の場所に建設できる
+  EXPECT_TRUE(farm.buildStable(2, 3));
+
+  std::vector<FencePosition> fences2 = {
+    FencePosition::create(2, 3, FencePosition::Edge::LEFT).value(),
+    FencePosition::create(2, 3, FencePosition::Edge::BOTTOM).value(),
+    FencePosition::create(2, 4, FencePosition::Edge::LEFT).value(),
+  };
+  // 厩を囲うように柵を建設できる
+  EXPECT_TRUE(farm.buildFence(fences2));
+}
+
 TEST_F(FarmTest, BuildRooms) {
   // 木の部屋を建設
   EXPECT_TRUE(farm.buildRoom(0, 0, RoomType::WOOD));

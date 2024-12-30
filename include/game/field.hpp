@@ -22,6 +22,7 @@ public:
     FieldType getType() const;
     void plow();
     void fence();
+    void stable();
     void buildWoodRoom();
     void buildClayRoom();
     void buildStoneRoom();
