@@ -111,5 +111,12 @@ public:
     bool buildFence(const std::vector<FencePosition>& newfences);
     bool plowField(int x, int y);
     bool buildStable(int x, int y);
-    // ...
+    // const参照を返すgetter
+    const Field& getField(const Position& pos) const {
+        return fields.at(pos);
+    }
+    // イテレーションが必要な場合
+    const std::map<Position, Field>& getFields() const {
+        return fields;
+    }
 };

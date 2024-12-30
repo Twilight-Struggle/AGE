@@ -2,14 +2,14 @@
 #include <vector>
 
 enum class FieldType {
-    EMPTY,
-    WOOD_ROOM,
-    CLAY_ROOM,
-    STONE_ROOM,
-    FIELD,
-    PASTURE,
-    STABLE,
-    OTHER,
+    EMPTY = 0,
+    WOOD_ROOM = 1,
+    CLAY_ROOM = 2,
+    STONE_ROOM = 3,
+    FIELD = 4,
+    OTHER = 5,
+    PASTURE = 1 << 4,    // 16
+    STABLE = 1 << 5,     // 32
 };
 
 class Field {

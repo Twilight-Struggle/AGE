@@ -60,7 +60,10 @@ std::pair<bool, std::set<Position>> Farm::isEnclosed(
   // スタート地点のチェックを追加
   if (fields.at(start).getType() != FieldType::EMPTY &&
       fields.at(start).getType() != FieldType::STABLE &&
-      fields.at(start).getType() != FieldType::PASTURE) {
+      fields.at(start).getType() != FieldType::PASTURE &&
+      fields.at(start).getType() !=
+          static_cast<FieldType>(static_cast<int>(FieldType::STABLE) |
+                                 static_cast<int>(FieldType::PASTURE))) {
     return {false, std::set<Position>()};
   }
 
@@ -132,7 +135,10 @@ std::pair<bool, std::set<Position>> Farm::isEnclosed(
           (fields.at(Position(next.x, next.y)).getType() != FieldType::EMPTY &&
            fields.at(Position(next.x, next.y)).getType() != FieldType::STABLE &&
            fields.at(Position(next.x, next.y)).getType() !=
-               FieldType::PASTURE)) {
+               FieldType::PASTURE &&
+           fields.at(start).getType() !=
+               static_cast<FieldType>(static_cast<int>(FieldType::STABLE) |
+                                      static_cast<int>(FieldType::PASTURE)))) {
         hasEnclosedPath = false;  // 囲まれていない
         continue;
       }
@@ -410,6 +416,7 @@ bool Farm::canBuildStable(int x, int y) const {
 
 bool Farm::buildStable(int x, int y) {
   if (!canBuildStable(x, y)) return false;
+  if (numStables >= 4) return false;
   fields[Position(x, y)].stable();
   numStables++;
   return true;

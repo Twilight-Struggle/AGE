@@ -12,11 +12,19 @@ void Field::plow() {
 }
 
 void Field::fence() {
-    type = FieldType::PASTURE;
+    // 現在の状態に PASTURE フラグを追加
+    type = static_cast<FieldType>(
+        static_cast<int>(type) | 
+        static_cast<int>(FieldType::PASTURE)
+    );
 }
 
 void Field::stable() {
-    type = FieldType::STABLE;
+    // 現在の状態に STABLE フラグを追加
+    type = static_cast<FieldType>(
+        static_cast<int>(type) | 
+        static_cast<int>(FieldType::STABLE)
+    );
 }
 
 void Field::buildWoodRoom() {
