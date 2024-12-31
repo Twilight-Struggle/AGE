@@ -156,9 +156,9 @@ TEST_F(FarmTest, FenceAndStable) {
 
 TEST_F(FarmTest, LiveStock) {
   // 柵がない場合は配置できない
-  std::map<size_t, Resource> placements = {
-    {0, Resource(ResourceType::SHEEP, 10)},
-    {1, Resource(ResourceType::BOAR, 10)},
+  std::vector<LivestockPlacement> placements = {
+    LivestockPlacement{size_t(0), Resource(ResourceType::SHEEP, 10)},
+    LivestockPlacement{size_t(1), Resource(ResourceType::BOAR, 10)},
   };
   EXPECT_FALSE(farm.placeLivestock(placements));
 
@@ -180,9 +180,9 @@ TEST_F(FarmTest, LiveStock) {
   // 家畜が多すぎて入らない
   EXPECT_FALSE(farm.placeLivestock(placements));
 
-  std::map<size_t, Resource> placements2 = {
-    {0, Resource(ResourceType::SHEEP, 2)},
-    {1, Resource(ResourceType::BOAR, 7)},
+  std::vector<LivestockPlacement> placements2 = {
+    LivestockPlacement{size_t(0), Resource(ResourceType::SHEEP, 2)},
+    LivestockPlacement{size_t(1), Resource(ResourceType::BOAR, 7)},
   };
   // ちょうど入る
   EXPECT_TRUE(farm.placeLivestock(placements2));
@@ -198,4 +198,31 @@ TEST_F(FarmTest, BuildRooms) {
   EXPECT_FALSE(farm.buildRoom(2, 1, RoomType::CLAY));
   // 木の家の時は石の家は建設できない
   EXPECT_FALSE(farm.buildRoom(2, 1, RoomType::STONE));
+}
+
+TEST_F(FarmTest, LiveStockSpecialCases) {
+  // 左下のマスに2匹は配置できない
+  std::vector<LivestockPlacement> tooMany = {
+    LivestockPlacement{Position{2, 0}, Resource(ResourceType::SHEEP, 2)},
+  };
+  EXPECT_FALSE(farm.placeLivestock(tooMany));
+
+  // 左下のマスに1匹配置
+  std::vector<LivestockPlacement> placements = {
+    LivestockPlacement{Position{2, 0}, Resource(ResourceType::SHEEP, 1)},
+  };
+  EXPECT_TRUE(farm.placeLivestock(placements));
+
+  // 囲われていない厩に1匹配置
+  farm.buildStable(1, 1);  // 柵で囲われていない位置に厩を建設
+  // 囲われていない厩に2匹は配置できない
+  std::vector<LivestockPlacement> tooManyStable = {
+    LivestockPlacement{Position{1, 1}, Resource(ResourceType::BOAR, 2)},
+  };
+  EXPECT_FALSE(farm.placeLivestock(tooManyStable));
+
+  std::vector<LivestockPlacement> stablePlacement = {
+    LivestockPlacement{Position{1, 1}, Resource(ResourceType::BOAR, 1)},
+  };
+  EXPECT_TRUE(farm.placeLivestock(stablePlacement));
 }

@@ -1,7 +1,9 @@
 #include "game/farm.hpp"
 
+#include <cstddef>
 #include <functional>
 #include <queue>
+
 
 Farm::Farm() : numRooms(2), numStables(0), roomType(RoomType::WOOD) {
   // 3x5のグリッドを初期化
@@ -341,52 +343,96 @@ int Farm::getMaxCapacity(size_t enclosureIndex) const {
     return baseCapacity * (1 << stableCount);  // 2^(厩の数)倍
 }
 
-bool Farm::validateLivestockPlacement(const std::map<size_t, Resource>& placements) const {
-    // 各牧場ごとに検証
-    for (const auto& [enclosureIndex, livestock] : placements) {
-        // 牧場のインデックスの範囲チェック
-        if (enclosureIndex >= enclosures.size()) {
-            return false;
+bool Farm::validateLivestockPlacement(const std::vector<LivestockPlacement>& placements) const {
+    for (const auto& placement : placements) {
+        if (std::holds_alternative<size_t>(placement.location)) {
+            // enclosureへの配置の検証
+            size_t enclosureIndex = std::get<size_t>(placement.location);
+            if (!validateEnclosurePlacement(enclosureIndex, placement.livestock)) {
+                return false;
+            }
+        } else {
+            // 特定マスへの配置の検証
+            Position pos = std::get<Position>(placement.location);
+            if (!validateSinglePositionPlacement(pos, placement.livestock)) {
+                return false;
+            }
         }
+    }
+    return true;
+}
 
-        // 家畜かどうかの確認
-        if (!(livestock.getType() == ResourceType::SHEEP || 
-            livestock.getType() == ResourceType::BOAR ||
-            livestock.getType() == ResourceType::CATTLE)) {
-            return false;
-        }
+bool Farm::validateSinglePositionPlacement(const Position& pos, const Resource& livestock) const {
+    const auto& field = fields.at(pos);
+    auto fieldType = field.getType();
+    
+    // 左下のマスの特別ルール
+    if (pos == Position{2, 0}) {  // 左下の座標に応じて調整してください
+        return livestock.getAmount() <= 1;  // 1匹まで
+    }
+    
+    // 囲われていない厩の場合（STABLEフラグはあるがPASTUREフラグがない）
+    if ((static_cast<int>(fieldType) & static_cast<int>(FieldType::STABLE)) && 
+        !(static_cast<int>(fieldType) & static_cast<int>(FieldType::PASTURE))) {
+        return livestock.getAmount() <= 1;  // 1匹まで
+    }
+    
+    return false;  // その他の単独マスには配置不可
+}
 
-        // 収容可能数を超えていないか確認
-        if (livestock.getAmount() > getMaxCapacity(enclosureIndex)) {
-            return false;
-        }
+bool Farm::validateEnclosurePlacement(const size_t enclosureIndex, const Resource& livestock) const {
+    // 牧場のインデックスの範囲チェック
+    if (enclosureIndex >= enclosures.size()) {
+        return false;
+    }
+
+    // 家畜かどうかの確認
+    if (!(livestock.getType() == ResourceType::SHEEP || 
+        livestock.getType() == ResourceType::BOAR ||
+        livestock.getType() == ResourceType::CATTLE)) {
+        return false;
+    }
+
+    // 収容可能数を超えていないか確認
+    if (livestock.getAmount() > getMaxCapacity(enclosureIndex)) {
+        return false;
     }
 
     return true;
 }
 
-bool Farm::placeLivestock(const std::map<size_t, Resource>& placements) {
+bool Farm::placeLivestock(const std::vector<LivestockPlacement>& placements) {
     if (!validateLivestockPlacement(placements)) {
         return false;
     }
+
     // 家畜を配置
-    for (const auto& [enclosureIndex, livestock] : placements) {
-      const auto& enclosure = enclosures[enclosureIndex];
-      int remainingLivestock = livestock.getAmount();
-      int baseAmount = remainingLivestock / enclosure.size();  // 基本の分配数
-      int extraCount = remainingLivestock % enclosure.size();  // 余りの数
-      for (const auto& pos : enclosure) {
-        int amountForThisField = baseAmount;
-        if (extraCount > 0) {
-            // 余りを1つずつ追加で配置
-            amountForThisField++;
-            extraCount--;
+    for (const auto& placement : placements) {
+        if (std::holds_alternative<size_t>(placement.location)) {
+            // enclosureへの配置
+            size_t enclosureIndex = std::get<size_t>(placement.location);
+            const auto& enclosure = enclosures[enclosureIndex];
+            int remainingLivestock = placement.livestock.getAmount();
+            int baseAmount = remainingLivestock / enclosure.size();  // 基本の分配数
+            int extraCount = remainingLivestock % enclosure.size();  // 余りの数
+
+            for (const auto& pos : enclosure) {
+                int amountForThisField = baseAmount;
+                if (extraCount > 0) {
+                    // 余りを1つずつ追加で配置
+                    amountForThisField++;
+                    extraCount--;
+                }
+                
+                if (amountForThisField > 0) {
+                    fields[pos].addContent(Resource(placement.livestock.getType(), amountForThisField));
+                }
+            }
+        } else {
+            // 特定マスへの配置（左下のマスまたは囲われていない厩）
+            Position pos = std::get<Position>(placement.location);
+            fields[pos].addContent(placement.livestock);
         }
-        
-        if (amountForThisField > 0) {
-            fields[pos].addContent(Resource(livestock.getType(), amountForThisField));
-        }
-      }
     }
     return true;
 }

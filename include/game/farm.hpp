@@ -1,9 +1,9 @@
 #include "field.hpp"
 #include <vector>
-#include <stdexcept>
 #include <optional>
 #include <set>
 #include <map>
+#include <variant>
 
 enum class RoomType {
     WOOD,
@@ -28,6 +28,12 @@ struct Position {
     bool operator==(const Position& other) const {
         return x == other.x && y == other.y;
     }
+};
+
+// 新しい入力形式を表現する型
+struct LivestockPlacement {
+    std::variant<size_t, Position> location;  // enclosureのindexまたは特定のPosition
+    Resource livestock;
 };
 
 class FencePosition {
@@ -106,7 +112,9 @@ private:
     bool canBuildStable(int x, int y) const;
     int getStableCount(const std::set<Position>& enclosure) const;
     int getMaxCapacity(size_t enclosureIndex) const;
-    bool validateLivestockPlacement(const std::map<size_t, Resource>& placements) const;
+    bool validateLivestockPlacement(const std::vector<LivestockPlacement>& placements) const;
+    bool validateSinglePositionPlacement(const Position& pos, const Resource& livestock) const;
+    bool validateEnclosurePlacement(const size_t enclosureIndex, const Resource& livestock) const;
 
 public:
     Farm();
@@ -114,7 +122,7 @@ public:
     bool buildFence(const std::vector<FencePosition>& newfences);
     bool plowField(int x, int y);
     bool buildStable(int x, int y);
-    bool placeLivestock(const std::map<size_t, Resource>& placements);
+    bool placeLivestock(const std::vector<LivestockPlacement>& placements);
     // const参照を返すgetter
     const Field& getField(const Position& pos) const {
         return fields.at(pos);
