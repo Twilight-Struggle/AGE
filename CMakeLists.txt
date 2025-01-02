@@ -17,6 +17,7 @@ add_library(agricola_core
     src/game/resource.cpp
     src/game/field.cpp
     src/game/farm.cpp
+    src/game/player.cpp
 )
 
 # インクルードディレクトリの設定
@@ -52,5 +53,6 @@ endfunction()
 add_agricola_test(resource_test)
 add_agricola_test(field_test)
 add_agricola_test(farm_test)
+add_agricola_test(player_test)
 
 # add_executable(hello_world src/main.cpp)

@@ -10,6 +10,7 @@ enum class ResourceType {
     CATTLE,
     FOOD,
     OTHER,
+    COUNT,
 };
 
 class Resource {
@@ -18,6 +19,7 @@ private:
     int amount;
 
 public:
+    Resource() : type(ResourceType::FOOD), amount(0) {}
     Resource(ResourceType type, int amount);
     ResourceType getType() const;
     int getAmount() const;
