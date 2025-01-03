@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-set(CMAKE_GENERATOR "Unix Makefiles" CACHE INTERNAL "" FORCE)
+set(CMAKE_GENERATOR "Ninja" CACHE INTERNAL "" FORCE)
 
 # コンパイラを設定（CMakeプロジェクトの設定前に行う必要があります）
 set(CMAKE_C_COMPILER clang)
