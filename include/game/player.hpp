@@ -3,14 +3,15 @@
 
 class Player {
 private:
+    int playerId;
     Farm farm;
     std::array<Resource, static_cast<size_t>(ResourceType::COUNT)> resources;
     int familyMembers;
     int begginCards;
 
 public:
-    Player();
-    
+    Player(int id);
+    int getPlayerId() const { return playerId; }
     // リソース関連
     void addResource(const Resource& resource);
     bool useResource(const Resource& resource);

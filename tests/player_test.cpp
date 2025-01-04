@@ -3,7 +3,7 @@
 
 class PlayerTest : public ::testing::Test {
  protected:
-  Player player;
+  Player player{1}; // プレイヤーID: 1
 };
 
 TEST_F(PlayerTest, InitialState) {

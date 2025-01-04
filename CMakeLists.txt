@@ -18,6 +18,7 @@ add_library(agricola_core
     src/game/field.cpp
     src/game/farm.cpp
     src/game/player.cpp
+    src/game/action_space.cpp
 )
 
 # インクルードディレクトリの設定
@@ -49,10 +50,23 @@ function(add_agricola_test TEST_NAME)
     gtest_discover_tests(${TEST_NAME})
 endfunction()
 
+function(add_agricola_test_actions TEST_NAME)
+    add_executable(${TEST_NAME} tests/actions/${TEST_NAME}.cpp)
+    target_link_libraries(${TEST_NAME}
+        PRIVATE
+            GTest::gtest_main
+            agricola_core
+    )
+    gtest_discover_tests(${TEST_NAME})
+endfunction()
+
 # テストの追加
 add_agricola_test(resource_test)
 add_agricola_test(field_test)
 add_agricola_test(farm_test)
 add_agricola_test(player_test)
+add_agricola_test(action_space_test)
+
+add_agricola_test_actions(day_labour_test)
 
 # add_executable(hello_world src/main.cpp)

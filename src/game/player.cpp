@@ -1,7 +1,8 @@
 #include "game/player.hpp"
 
-Player::Player() 
-    : farm()
+Player::Player(int id) 
+    : playerId(id)
+    , farm()
     , familyMembers(2)
     , begginCards(0)
     , resources()
