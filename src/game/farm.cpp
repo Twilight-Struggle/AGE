@@ -23,11 +23,12 @@ bool Farm::canPlace(Position pos) const {
          fields.at(pos).getType() == FieldType::EMPTY;
 }
 
-bool Farm::isFenceAt(int x, int y, FencePosition::Edge edge) const {
+bool Farm::isFenceAt(Position pos, FencePosition::Edge edge) const {
   return std::find_if(fences.begin(), fences.end(),
-                      [x, y, edge](const FencePosition& pos) {
-                        return pos.getX() == x && pos.getY() == y &&
-                               pos.getEdge() == edge;
+                      [pos, edge](const FencePosition& fencePos) {
+                        return fencePos.getPosition().x == pos.x &&
+                               fencePos.getPosition().y == pos.y &&
+                               fencePos.getEdge() == edge;
                       }) != fences.end();
 }
 
@@ -95,33 +96,33 @@ std::pair<bool, std::set<Position>> Farm::isEnclosed(
       if (dir.first == 0 && dir.second == -1) {
         // 左方向：現在のマスのLEFT
         edge = FencePosition::Edge::LEFT;
-        fenceOpt = FencePosition::create(current.x, current.y, edge);
+        fenceOpt = FencePosition::create(current, edge);
       } else if (dir.first == 1 && dir.second == 0) {
         // 下方向：
         if (current.x == 2) {
           // x=2の場合は現在のマスのBOTTOM
           edge = FencePosition::Edge::BOTTOM;
-          fenceOpt = FencePosition::create(current.x, current.y, edge);
+          fenceOpt = FencePosition::create(current, edge);
         } else {
           // それ以外は下のマスのTOP
           edge = FencePosition::Edge::TOP;
-          fenceOpt = FencePosition::create(current.x + 1, current.y, edge);
+          fenceOpt = FencePosition::create(current.down(), edge);
         }
       } else if (dir.first == 0 && dir.second == 1) {
         // 右方向：
         if (current.y == 4) {
           // y=4の場合は現在のマスのRIGHT
           edge = FencePosition::Edge::RIGHT;
-          fenceOpt = FencePosition::create(current.x, current.y, edge);
+          fenceOpt = FencePosition::create(current, edge);
         } else {
           // それ以外は次のマスのLEFT
           edge = FencePosition::Edge::LEFT;
-          fenceOpt = FencePosition::create(current.x, current.y + 1, edge);
+          fenceOpt = FencePosition::create(current.right(), edge);
         }
       } else {
         // 上方向：現在のマスのTOP
         edge = FencePosition::Edge::TOP;
-        fenceOpt = FencePosition::create(current.x, current.y, edge);
+        fenceOpt = FencePosition::create(current, edge);
       }
 
       // 柵がある場合は次の方向へ
@@ -216,40 +217,36 @@ std::pair<bool, std::vector<std::set<Position>>> Farm::isValidEnclosure(
       // 左辺
       if (pos.y == 0 || std::find(area.begin(), area.end(),
                                   Position(pos.x, pos.y - 1)) == area.end()) {
-        auto fence =
-            FencePosition::create(pos.x, pos.y, FencePosition::Edge::LEFT);
+        auto fence = FencePosition::create(pos, FencePosition::Edge::LEFT);
         if (fence) requiredFences.insert(*fence);
       }
       // 上辺
       if (pos.x == 0 || std::find(area.begin(), area.end(),
                                   Position(pos.x - 1, pos.y)) == area.end()) {
-        auto fence =
-            FencePosition::create(pos.x, pos.y, FencePosition::Edge::TOP);
+        auto fence = FencePosition::create(pos, FencePosition::Edge::TOP);
         if (fence) requiredFences.insert(*fence);
       }
       // 右辺
-      if (pos.y == 4 || std::find(area.begin(), area.end(),
-                                  Position(pos.x, pos.y + 1)) == area.end()) {
+      if (pos.y == 4 ||
+          std::find(area.begin(), area.end(), pos.right()) == area.end()) {
         if (pos.y == 4) {
-          auto fence =
-              FencePosition::create(pos.x, pos.y, FencePosition::Edge::RIGHT);
+          auto fence = FencePosition::create(pos, FencePosition::Edge::RIGHT);
           if (fence) requiredFences.insert(*fence);
         } else {
-          auto fence = FencePosition::create(pos.x, pos.y + 1,
-                                             FencePosition::Edge::LEFT);
+          auto fence =
+              FencePosition::create(pos.right(), FencePosition::Edge::LEFT);
           if (fence) requiredFences.insert(*fence);
         }
       }
       // 下辺
-      if (pos.x == 2 || std::find(area.begin(), area.end(),
-                                  Position(pos.x + 1, pos.y)) == area.end()) {
+      if (pos.x == 2 ||
+          std::find(area.begin(), area.end(), pos.down()) == area.end()) {
         if (pos.x == 2) {
-          auto fence =
-              FencePosition::create(pos.x, pos.y, FencePosition::Edge::BOTTOM);
+          auto fence = FencePosition::create(pos, FencePosition::Edge::BOTTOM);
           if (fence) requiredFences.insert(*fence);
         } else {
           auto fence =
-              FencePosition::create(pos.x + 1, pos.y, FencePosition::Edge::TOP);
+              FencePosition::create(pos.down(), FencePosition::Edge::TOP);
           if (fence) requiredFences.insert(*fence);
         }
       }
@@ -268,11 +265,11 @@ std::pair<bool, std::vector<std::set<Position>>> Farm::canBuildFence(
 
   // 基本的なバリデーション
   for (const auto& fence : newFences) {
-    if (fence.getX() < 0 || fence.getX() >= 3 || fence.getY() < 0 ||
-        fence.getY() >= 5)
+    if (fence.getPosition().x < 0 || fence.getPosition().x >= 3 ||
+        fence.getPosition().y < 0 || fence.getPosition().y >= 5)
       return {false, std::vector<std::set<Position>>()};
     // 既存の柵と重複している場合はfalse
-    if (isFenceAt(fence.getX(), fence.getY(), fence.getEdge()))
+    if (isFenceAt(fence.getPosition(), fence.getEdge()))
       return {false, std::vector<std::set<Position>>()};
   }
 
@@ -304,18 +301,17 @@ bool Farm::buildFence(const std::vector<FencePosition>& newFences) {
   return true;
 }
 
-bool Farm::canBuildStable(int x, int y) const {
-  Position pos(x, y);
+bool Farm::canBuildStable(Position pos) const {
   // 座標が有効範囲内かチェック
-  return x >= 0 && x < 3 && y >= 0 && y < 5 &&
+  return pos.x >= 0 && pos.x < 3 && pos.y >= 0 && pos.y < 5 &&
          (fields.at(pos).getType() == FieldType::EMPTY ||
           fields.at(pos).getType() == FieldType::PASTURE);
 }
 
-bool Farm::buildStable(int x, int y) {
-  if (!canBuildStable(x, y)) return false;
+bool Farm::buildStable(Position pos) {
+  if (!canBuildStable(pos)) return false;
   if (numStables >= 4) return false;
-  fields[Position(x, y)].stable();
+  fields[pos].stable();
   numStables++;
   return true;
 }

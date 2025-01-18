@@ -31,27 +31,27 @@ TEST_F(FarmTest, PlowField) {
 
 TEST_F(FarmTest, BuildFence) {
   std::vector<FencePosition> fences = {
-      FencePosition::create(0, 0, FencePosition::Edge::TOP).value(),
-      FencePosition::create(0, 0, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(1, 0, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(2, 0, FencePosition::Edge::TOP).value(),
-      FencePosition::create(2, 1, FencePosition::Edge::TOP).value(),
-      FencePosition::create(1, 2, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(0, 2, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(0, 1, FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(0, 0), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(0, 0), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(1, 0), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(2, 0), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(2, 1), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(1, 2), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(0, 2), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(0, 1), FencePosition::Edge::TOP).value(),
   };
   // 空でない場所に柵はおけない
   EXPECT_FALSE(farm.buildFence(fences));
 
   std::vector<FencePosition> fences2 = {
-      FencePosition::create(0, 3, FencePosition::Edge::TOP).value(),
-      FencePosition::create(0, 3, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(1, 3, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(2, 3, FencePosition::Edge::TOP).value(),
-      FencePosition::create(2, 4, FencePosition::Edge::TOP).value(),
-      FencePosition::create(1, 4, FencePosition::Edge::RIGHT).value(),
-      FencePosition::create(0, 4, FencePosition::Edge::RIGHT).value(),
-      FencePosition::create(0, 4, FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(0, 3), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(0, 3), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(1, 3), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(2, 3), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(2, 4), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(1, 4), FencePosition::Edge::RIGHT).value(),
+      FencePosition::create(Position(0, 4), FencePosition::Edge::RIGHT).value(),
+      FencePosition::create(Position(0, 4), FencePosition::Edge::TOP).value(),
   };
   // 有効な柵の配置
   EXPECT_TRUE(farm.buildFence(fences2));
@@ -62,38 +62,39 @@ TEST_F(FarmTest, BuildFence) {
   EXPECT_EQ(farm.getField(Position(1, 4)).getType(), FieldType::PASTURE);
 
   std::vector<FencePosition> fences3 = {
-      FencePosition::create(1, 3, FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(1, 3), FencePosition::Edge::TOP).value(),
   };
   // 中途半端な柵は建設できない
   EXPECT_FALSE(farm.buildFence(fences3));
 
   std::vector<FencePosition> fences4 = {
-      FencePosition::create(1, 3, FencePosition::Edge::TOP).value(),
-      FencePosition::create(1, 4, FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(1, 3), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(1, 4), FencePosition::Edge::TOP).value(),
   };
   // 牧場をきちんと分けられる柵は建設可能
   EXPECT_TRUE(farm.buildFence(fences4));
 
   std::vector<FencePosition> fences5 = {
-      FencePosition::create(2, 2, FencePosition::Edge::TOP).value(),
-      FencePosition::create(2, 2, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(2, 2, FencePosition::Edge::BOTTOM).value(),
-      FencePosition::create(2, 3, FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(2, 2), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(2, 2), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(2, 2), FencePosition::Edge::BOTTOM)
+          .value(),
+      FencePosition::create(Position(2, 3), FencePosition::Edge::LEFT).value(),
   };
   // 孤立した柵は建設できない
   EXPECT_FALSE(farm.buildFence(fences5));
 
   std::vector<FencePosition> fences6 = {
-      FencePosition::create(0, 2, FencePosition::Edge::TOP).value(),
-      FencePosition::create(1, 2, FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(0, 2), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(1, 2), FencePosition::Edge::TOP).value(),
   };
   // 開放部分がある柵は建設できない
   EXPECT_FALSE(farm.buildFence(fences6));
 
   std::vector<FencePosition> fences7 = {
-      FencePosition::create(0, 2, FencePosition::Edge::TOP).value(),
-      FencePosition::create(0, 2, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(1, 2, FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(0, 2), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(0, 2), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(1, 2), FencePosition::Edge::TOP).value(),
   };
   // 外側に新たに柵を建設可能
   EXPECT_TRUE(farm.buildFence(fences7));
@@ -101,11 +102,11 @@ TEST_F(FarmTest, BuildFence) {
   EXPECT_EQ(farm.getField(Position(0, 2)).getType(), FieldType::PASTURE);
 
   std::vector<FencePosition> fences8 = {
-      FencePosition::create(0, 1, FencePosition::Edge::TOP).value(),
-      FencePosition::create(0, 1, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(1, 1, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(2, 1, FencePosition::Edge::TOP).value(),
-      FencePosition::create(2, 2, FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(0, 1), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(0, 1), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(1, 1), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(2, 1), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(2, 2), FencePosition::Edge::TOP).value(),
   };
   // 15本以上柵は建設できない
   EXPECT_FALSE(farm.buildFence(fences8));
@@ -113,47 +114,50 @@ TEST_F(FarmTest, BuildFence) {
 
 TEST_F(FarmTest, FenceAndStable) {
   std::vector<FencePosition> fences = {
-      FencePosition::create(0, 3, FencePosition::Edge::TOP).value(),
-      FencePosition::create(0, 3, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(1, 3, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(2, 3, FencePosition::Edge::TOP).value(),
-      FencePosition::create(2, 4, FencePosition::Edge::TOP).value(),
-      FencePosition::create(1, 4, FencePosition::Edge::RIGHT).value(),
-      FencePosition::create(0, 4, FencePosition::Edge::RIGHT).value(),
-      FencePosition::create(0, 4, FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(0, 3), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(0, 3), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(1, 3), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(2, 3), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(2, 4), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(1, 4), FencePosition::Edge::RIGHT).value(),
+      FencePosition::create(Position(0, 4), FencePosition::Edge::RIGHT).value(),
+      FencePosition::create(Position(0, 4), FencePosition::Edge::TOP).value(),
   };
   // 有効な柵の配置
   EXPECT_TRUE(farm.buildFence(fences));
 
   // 建物などの上には建設できない
-  EXPECT_FALSE(farm.buildStable(1, 0));
+  EXPECT_FALSE(farm.buildStable(Position(1, 0)));
 
   // 柵の中に建設できる
-  EXPECT_TRUE(farm.buildStable(0, 3));
+  auto pos1 = Position(0, 3);
+  EXPECT_TRUE(farm.buildStable(pos1));
   // PASTUREとSTABLEの両方のフラグが立っていることを確認
-  EXPECT_EQ(farm.getField(Position(0, 3)).getType(),
+  EXPECT_EQ(farm.getField(pos1).getType(),
             static_cast<FieldType>(static_cast<int>(FieldType::PASTURE) |
                                    static_cast<int>(FieldType::STABLE)));
 
   // 空の場所に建設できる
-  EXPECT_TRUE(farm.buildStable(2, 3));
+  auto pos2 = Position(2, 3);
+  EXPECT_TRUE(farm.buildStable(pos2));
 
   std::vector<FencePosition> fences2 = {
-      FencePosition::create(2, 3, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(2, 3, FencePosition::Edge::BOTTOM).value(),
-      FencePosition::create(2, 4, FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(2, 3), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(2, 3), FencePosition::Edge::BOTTOM)
+          .value(),
+      FencePosition::create(Position(2, 4), FencePosition::Edge::LEFT).value(),
   };
   // 厩を囲うように柵を建設できる
   EXPECT_TRUE(farm.buildFence(fences2));
   // PASTUREとSTABLEの両方のフラグが立っていることを確認
-  EXPECT_EQ(farm.getField(Position(2, 3)).getType(),
+  EXPECT_EQ(farm.getField(pos2).getType(),
             static_cast<FieldType>(static_cast<int>(FieldType::PASTURE) |
                                    static_cast<int>(FieldType::STABLE)));
 
   // 5つ以上の建設できない
-  farm.buildStable(0, 4);
-  farm.buildStable(1, 3);
-  EXPECT_FALSE(farm.buildStable(1, 4));
+  farm.buildStable(Position(0, 4));
+  farm.buildStable(Position(1, 3));
+  EXPECT_FALSE(farm.buildStable(Position(1, 4)));
 }
 
 TEST_F(FarmTest, LiveStock) {
@@ -165,19 +169,20 @@ TEST_F(FarmTest, LiveStock) {
   EXPECT_FALSE(farm.placeLivestock(placements));
 
   std::vector<FencePosition> fences = {
-      FencePosition::create(0, 4, FencePosition::Edge::TOP).value(),
-      FencePosition::create(0, 4, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(1, 3, FencePosition::Edge::TOP).value(),
-      FencePosition::create(1, 4, FencePosition::Edge::TOP).value(),
-      FencePosition::create(1, 3, FencePosition::Edge::LEFT).value(),
-      FencePosition::create(2, 3, FencePosition::Edge::TOP).value(),
-      FencePosition::create(2, 4, FencePosition::Edge::TOP).value(),
-      FencePosition::create(1, 4, FencePosition::Edge::RIGHT).value(),
-      FencePosition::create(0, 4, FencePosition::Edge::RIGHT).value(),
+      FencePosition::create(Position(0, 4), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(0, 4), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(1, 3), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(1, 4), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(1, 3), FencePosition::Edge::LEFT).value(),
+      FencePosition::create(Position(2, 3), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(2, 4), FencePosition::Edge::TOP).value(),
+      FencePosition::create(Position(1, 4), FencePosition::Edge::RIGHT).value(),
+      FencePosition::create(Position(0, 4), FencePosition::Edge::RIGHT).value(),
   };
   // 有効な柵の配置
   farm.buildFence(fences);
-  farm.buildStable(1, 3);
+  auto pos1 = Position(1, 3);
+  farm.buildStable(pos1);
 
   // 家畜が多すぎて入らない
   EXPECT_FALSE(farm.placeLivestock(placements));
@@ -217,7 +222,8 @@ TEST_F(FarmTest, LiveStockSpecialCases) {
   EXPECT_TRUE(farm.placeLivestock(placements));
 
   // 囲われていない厩に1匹配置
-  farm.buildStable(1, 1);  // 柵で囲われていない位置に厩を建設
+  auto pos1 = Position(1, 1);
+  farm.buildStable(pos1);  // 柵で囲われていない位置に厩を建設
   // 囲われていない厩に2匹は配置できない
   std::vector<LivestockPlacement> tooManyStable = {
       LivestockPlacement{Position{1, 1}, Resource(ResourceType::BOAR, 2)},

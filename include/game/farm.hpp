@@ -14,8 +14,8 @@ enum class RoomType {
 };
 
 struct Position {
-  static const int WIDTH = 3;
-  static const int HEIGHT = 5;
+  static constexpr int WIDTH = 3;
+  static constexpr int HEIGHT = 5;
   int x;
   int y;
 
@@ -55,46 +55,45 @@ class FencePosition {
     BOTTOM,  // x=2の場合のみ
     RIGHT    // y=4の場合のみ
   };
-  int getX() const { return x; }
-  int getY() const { return y; }
+  Position getPosition() const { return pos; }
   Edge getEdge() const { return edge; }
 
   // コンストラクタでバリデーション
-  static std::optional<FencePosition> create(int x, int y, Edge edge) {
-    FencePosition pos(x, y, edge);
-    if (pos.isValid()) {
-      return pos;
+  static std::optional<FencePosition> create(Position pos, Edge edge) {
+    FencePosition fencePos(pos, edge);
+    if (fencePos.isValid()) {
+      return fencePos;
     }
     return std::nullopt;
   }
 
   // std::setで使用するための比較演算子
   bool operator<(const FencePosition& other) const {
-    if (x != other.x) return x < other.x;
-    if (y != other.y) return y < other.y;
+    if (pos.x != other.pos.x) return pos.x < other.pos.x;
+    if (pos.y != other.pos.y) return pos.y < other.pos.y;
     return edge < other.edge;
   }
 
   bool operator==(const FencePosition& other) const {
-    return x == other.x && y == other.y && edge == other.edge;
+    return pos.x == other.pos.x && pos.y == other.pos.y && edge == other.edge;
   }
 
  private:
-  FencePosition(int x, int y, Edge edge) : x(x), y(y), edge(edge) {}
-  int x, y;  // マスの位置
+  FencePosition(Position pos, Edge edge) : pos(pos), edge(edge) {}
+  Position pos;
   Edge edge;
   // 有効な柵の位置かチェック
   bool isValid() const {
-    if (x < 0 || x >= 3 || y < 0 || y >= 5) return false;
+    if (pos.x < 0 || pos.x >= 3 || pos.y < 0 || pos.y >= 5) return false;
 
     switch (edge) {
       case TOP:
       case LEFT:
         return true;  // 常に有効
       case BOTTOM:
-        return x == 2;  // 最下段のみ
+        return pos.x == 2;  // 最下段のみ
       case RIGHT:
-        return y == 4;  // 最右列のみ
+        return pos.y == 4;  // 最右列のみ
       default:
         return false;
     }
@@ -116,7 +115,7 @@ class Farm {
   std::pair<bool, std::vector<std::set<Position>>> canBuildFence(
       const std::vector<FencePosition>& newFences) const;
   bool canPlowField(Position pos) const;
-  bool isFenceAt(int x, int y, FencePosition::Edge edge) const;
+  bool isFenceAt(Position pos, FencePosition::Edge edge) const;
   std::pair<bool, std::set<Position>> isEnclosed(
       const Position& start, const std::set<FencePosition>& fences) const;
   std::vector<std::set<Position>> getEnclosedAreas(
@@ -124,7 +123,7 @@ class Farm {
   std::pair<bool, std::vector<std::set<Position>>> isValidEnclosure(
       const std::vector<std::set<Position>>& newEnclosure,
       const std::set<FencePosition>& tempFences) const;
-  bool canBuildStable(int x, int y) const;
+  bool canBuildStable(Position pos) const;
   int getStableCount(const std::set<Position>& enclosure) const;
   int getMaxCapacity(size_t enclosureIndex) const;
   bool validateLivestockPlacement(
@@ -139,7 +138,7 @@ class Farm {
   bool buildRoom(Position pos, RoomType roomType);
   bool buildFence(const std::vector<FencePosition>& newfences);
   bool plowField(Position pos);
-  bool buildStable(int x, int y);
+  bool buildStable(Position pos);
   bool placeLivestock(const std::vector<LivestockPlacement>& placements);
   // const参照を返すgetter
   const Field& getField(const Position& pos) const { return fields.at(pos); }
