@@ -4,7 +4,6 @@
 #include <functional>
 #include <queue>
 
-
 Farm::Farm() : numRooms(2), numStables(0), roomType(RoomType::WOOD) {
   // 3x5のグリッドを初期化
   for (int x = 0; x < 3; x++) {
@@ -18,10 +17,9 @@ Farm::Farm() : numRooms(2), numStables(0), roomType(RoomType::WOOD) {
   fields[Position(2, 0)].buildWoodRoom();
 }
 
-bool Farm::canPlace(int x, int y) const {
-  Position pos(x, y);
+bool Farm::canPlace(Position pos) const {
   // 座標が有効範囲内かチェック
-  return x >= 0 && x < 3 && y >= 0 && y < 5 &&
+  return pos.x >= 0 && pos.x < 3 && pos.y >= 0 && pos.y < 5 &&
          fields.at(pos).getType() == FieldType::EMPTY;
 }
 
@@ -325,159 +323,163 @@ bool Farm::buildStable(int x, int y) {
 int Farm::getStableCount(const std::set<Position>& enclosure) const {
   int count = 0;
   for (const auto& pos : enclosure) {
-      const auto& field = fields.at(pos);
-      if (static_cast<int>(field.getType()) & static_cast<int>(FieldType::STABLE)) {
-          count++;
-      }
+    const auto& field = fields.at(pos);
+    if (static_cast<int>(field.getType()) &
+        static_cast<int>(FieldType::STABLE)) {
+      count++;
+    }
   }
   return count;
 }
 
 int Farm::getMaxCapacity(size_t enclosureIndex) const {
-    if (enclosureIndex >= enclosures.size()) return 0;
-    
-    const auto& enclosure = enclosures[enclosureIndex];
-    int baseCapacity = enclosure.size() * 2;  // 基本は1マスあたり2匹
-    int stableCount = getStableCount(enclosure);
-    
-    return baseCapacity * (1 << stableCount);  // 2^(厩の数)倍
+  if (enclosureIndex >= enclosures.size()) return 0;
+
+  const auto& enclosure = enclosures[enclosureIndex];
+  int baseCapacity = enclosure.size() * 2;  // 基本は1マスあたり2匹
+  int stableCount = getStableCount(enclosure);
+
+  return baseCapacity * (1 << stableCount);  // 2^(厩の数)倍
 }
 
-bool Farm::validateLivestockPlacement(const std::vector<LivestockPlacement>& placements) const {
-    for (const auto& placement : placements) {
-        if (std::holds_alternative<size_t>(placement.location)) {
-            // enclosureへの配置の検証
-            size_t enclosureIndex = std::get<size_t>(placement.location);
-            if (!validateEnclosurePlacement(enclosureIndex, placement.livestock)) {
-                return false;
-            }
-        } else {
-            // 特定マスへの配置の検証
-            Position pos = std::get<Position>(placement.location);
-            if (!validateSinglePositionPlacement(pos, placement.livestock)) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool Farm::validateSinglePositionPlacement(const Position& pos, const Resource& livestock) const {
-    const auto& field = fields.at(pos);
-    auto fieldType = field.getType();
-    
-    // 左下のマスの特別ルール
-    if (pos == Position{2, 0}) {  // 左下の座標に応じて調整してください
-        return livestock.getAmount() <= 1;  // 1匹まで
-    }
-    
-    // 囲われていない厩の場合（STABLEフラグはあるがPASTUREフラグがない）
-    if ((static_cast<int>(fieldType) & static_cast<int>(FieldType::STABLE)) && 
-        !(static_cast<int>(fieldType) & static_cast<int>(FieldType::PASTURE))) {
-        return livestock.getAmount() <= 1;  // 1匹まで
-    }
-    
-    return false;  // その他の単独マスには配置不可
-}
-
-bool Farm::validateEnclosurePlacement(const size_t enclosureIndex, const Resource& livestock) const {
-    // 牧場のインデックスの範囲チェック
-    if (enclosureIndex >= enclosures.size()) {
+bool Farm::validateLivestockPlacement(
+    const std::vector<LivestockPlacement>& placements) const {
+  for (const auto& placement : placements) {
+    if (std::holds_alternative<size_t>(placement.location)) {
+      // enclosureへの配置の検証
+      size_t enclosureIndex = std::get<size_t>(placement.location);
+      if (!validateEnclosurePlacement(enclosureIndex, placement.livestock)) {
         return false;
+      }
+    } else {
+      // 特定マスへの配置の検証
+      Position pos = std::get<Position>(placement.location);
+      if (!validateSinglePositionPlacement(pos, placement.livestock)) {
+        return false;
+      }
     }
+  }
+  return true;
+}
 
-    // 家畜かどうかの確認
-    if (!(livestock.getType() == ResourceType::SHEEP || 
+bool Farm::validateSinglePositionPlacement(const Position& pos,
+                                           const Resource& livestock) const {
+  const auto& field = fields.at(pos);
+  auto fieldType = field.getType();
+
+  // 左下のマスの特別ルール
+  if (pos == Position{2, 0}) {  // 左下の座標に応じて調整してください
+    return livestock.getAmount() <= 1;  // 1匹まで
+  }
+
+  // 囲われていない厩の場合（STABLEフラグはあるがPASTUREフラグがない）
+  if ((static_cast<int>(fieldType) & static_cast<int>(FieldType::STABLE)) &&
+      !(static_cast<int>(fieldType) & static_cast<int>(FieldType::PASTURE))) {
+    return livestock.getAmount() <= 1;  // 1匹まで
+  }
+
+  return false;  // その他の単独マスには配置不可
+}
+
+bool Farm::validateEnclosurePlacement(const size_t enclosureIndex,
+                                      const Resource& livestock) const {
+  // 牧場のインデックスの範囲チェック
+  if (enclosureIndex >= enclosures.size()) {
+    return false;
+  }
+
+  // 家畜かどうかの確認
+  if (!(livestock.getType() == ResourceType::SHEEP ||
         livestock.getType() == ResourceType::BOAR ||
         livestock.getType() == ResourceType::CATTLE)) {
-        return false;
-    }
+    return false;
+  }
 
-    // 収容可能数を超えていないか確認
-    if (livestock.getAmount() > getMaxCapacity(enclosureIndex)) {
-        return false;
-    }
+  // 収容可能数を超えていないか確認
+  if (livestock.getAmount() > getMaxCapacity(enclosureIndex)) {
+    return false;
+  }
 
-    return true;
+  return true;
 }
 
 bool Farm::placeLivestock(const std::vector<LivestockPlacement>& placements) {
-    if (!validateLivestockPlacement(placements)) {
-        return false;
-    }
+  if (!validateLivestockPlacement(placements)) {
+    return false;
+  }
 
-    // 家畜を配置
-    for (const auto& placement : placements) {
-        if (std::holds_alternative<size_t>(placement.location)) {
-            // enclosureへの配置
-            size_t enclosureIndex = std::get<size_t>(placement.location);
-            const auto& enclosure = enclosures[enclosureIndex];
-            int remainingLivestock = placement.livestock.getAmount();
-            int baseAmount = remainingLivestock / enclosure.size();  // 基本の分配数
-            int extraCount = remainingLivestock % enclosure.size();  // 余りの数
+  // 家畜を配置
+  for (const auto& placement : placements) {
+    if (std::holds_alternative<size_t>(placement.location)) {
+      // enclosureへの配置
+      size_t enclosureIndex = std::get<size_t>(placement.location);
+      const auto& enclosure = enclosures[enclosureIndex];
+      int remainingLivestock = placement.livestock.getAmount();
+      int baseAmount = remainingLivestock / enclosure.size();  // 基本の分配数
+      int extraCount = remainingLivestock % enclosure.size();  // 余りの数
 
-            for (const auto& pos : enclosure) {
-                int amountForThisField = baseAmount;
-                if (extraCount > 0) {
-                    // 余りを1つずつ追加で配置
-                    amountForThisField++;
-                    extraCount--;
-                }
-                
-                if (amountForThisField > 0) {
-                    fields[pos].addContent(Resource(placement.livestock.getType(), amountForThisField));
-                }
-            }
-        } else {
-            // 特定マスへの配置（左下のマスまたは囲われていない厩）
-            Position pos = std::get<Position>(placement.location);
-            fields[pos].addContent(placement.livestock);
+      for (const auto& pos : enclosure) {
+        int amountForThisField = baseAmount;
+        if (extraCount > 0) {
+          // 余りを1つずつ追加で配置
+          amountForThisField++;
+          extraCount--;
         }
+
+        if (amountForThisField > 0) {
+          fields[pos].addContent(
+              Resource(placement.livestock.getType(), amountForThisField));
+        }
+      }
+    } else {
+      // 特定マスへの配置（左下のマスまたは囲われていない厩）
+      Position pos = std::get<Position>(placement.location);
+      fields[pos].addContent(placement.livestock);
     }
-    return true;
+  }
+  return true;
 }
 
-bool Farm::canBuildRoom(int x, int y, RoomType roomType) const {
+bool Farm::canBuildRoom(Position pos, RoomType roomType) const {
   if (this->roomType != roomType) return false;
-  if (!canPlace(x, y)) return false;
+  if (!canPlace(pos)) return false;
 
   // 上下左右に隣接するマスをチェック
   bool hasAdjacentRoom = false;
   // 上のマス
-  if (x > 0) {
-    Position pos(x - 1, y);
-    if (isRoom(fields.at(pos).getType())) {
+  if (pos.x > 0) {
+    Position newPos = pos.up();
+    if (isRoom(fields.at(newPos).getType())) {
       hasAdjacentRoom = true;
     }
   }
   // 下のマス
-  if (x < 2) {
-    Position pos(x + 1, y);
-    if (isRoom(fields.at(pos).getType())) {
+  if (pos.x < 2) {
+    Position newPos = pos.down();
+    if (isRoom(fields.at(newPos).getType())) {
       hasAdjacentRoom = true;
     }
   }
   // 左のマス
-  if (y > 0) {
-    Position pos(x, y - 1);
-    if (isRoom(fields.at(pos).getType())) {
+  if (pos.y > 0) {
+    Position newPos = pos.left();
+    if (isRoom(fields.at(newPos).getType())) {
       hasAdjacentRoom = true;
     }
   }
   // 右のマス
-  if (y < 4) {
-    Position pos(x, y + 1);
-    if (isRoom(fields.at(pos).getType())) {
+  if (pos.y < 4) {
+    Position newPos = pos.right();
+    if (isRoom(fields.at(newPos).getType())) {
       hasAdjacentRoom = true;
     }
   }
   return hasAdjacentRoom;
 }
 
-bool Farm::buildRoom(int x, int y, RoomType roomType) {
-  if (!canBuildRoom(x, y, roomType)) return false;
+bool Farm::buildRoom(Position pos, RoomType roomType) {
+  if (!canBuildRoom(pos, roomType)) return false;
 
-  Position pos(x, y);
   if (roomType == RoomType::WOOD) {
     fields[pos].buildWoodRoom();
   } else if (roomType == RoomType::CLAY) {
@@ -489,8 +491,8 @@ bool Farm::buildRoom(int x, int y, RoomType roomType) {
   return true;
 }
 
-bool Farm::canPlowField(int x, int y) const {
-  if (!canPlace(x, y)) return false;
+bool Farm::canPlowField(Position pos) const {
+  if (!canPlace(pos)) return false;
 
   // まずフィールド内にFIELDが存在するかチェック
   bool hasAnyField =
@@ -503,38 +505,38 @@ bool Farm::canPlowField(int x, int y) const {
   // 上下左右に隣接するマスをチェック
   bool hasAdjacentField = false;
   // 上のマス
-  if (x > 0) {
-    Position pos(x - 1, y);
-    if (fields.at(pos).getType() == FieldType::FIELD) {
+  if (pos.x > 0) {
+    Position newPos = pos.up();
+    if (fields.at(newPos).getType() == FieldType::FIELD) {
       hasAdjacentField = true;
     }
   }
   // 下のマス
-  if (x < 2) {
-    Position pos(x + 1, y);
-    if (fields.at(pos).getType() == FieldType::FIELD) {
+  if (pos.x < 2) {
+    Position newPos = pos.down();
+    if (fields.at(newPos).getType() == FieldType::FIELD) {
       hasAdjacentField = true;
     }
   }
   // 左のマス
-  if (y > 0) {
-    Position pos(x, y - 1);
-    if (fields.at(pos).getType() == FieldType::FIELD) {
+  if (pos.y > 0) {
+    Position newPos = pos.left();
+    if (fields.at(newPos).getType() == FieldType::FIELD) {
       hasAdjacentField = true;
     }
   }
   // 右のマス
-  if (y < 4) {
-    Position pos(x, y + 1);
-    if (fields.at(pos).getType() == FieldType::FIELD) {
+  if (pos.y < 4) {
+    Position newPos = pos.right();
+    if (fields.at(newPos).getType() == FieldType::FIELD) {
       hasAdjacentField = true;
     }
   }
   return hasAdjacentField;
 }
 
-bool Farm::plowField(int x, int y) {
-  if (!canPlowField(x, y)) return false;
-  fields[Position(x, y)].plow();
+bool Farm::plowField(Position pos) {
+  if (!canPlowField(pos)) return false;
+  fields[pos].plow();
   return true;
 }
