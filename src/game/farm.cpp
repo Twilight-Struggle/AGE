@@ -436,59 +436,104 @@ bool Farm::placeLivestock(const std::vector<LivestockPlacement>& placements) {
   return true;
 }
 
-bool Farm::canBuildRoom(Position pos, RoomType roomType) const {
-  if (this->roomType != roomType) return false;
-  if (!canPlace(pos)) return false;
+bool Farm::isConnected(const std::set<Position>& positions) const {
+  if (positions.empty()) return true;
 
-  // 上下左右に隣接するマスをチェック
-  bool hasAdjacentRoom = false;
-  // 上のマス
-  if (pos.x > 0) {
-    Position newPos = pos.up();
-    if (isRoom(fields.at(newPos).getType())) {
-      hasAdjacentRoom = true;
+  std::set<Position> visited;
+  std::queue<Position> queue;
+
+  // Start from first position
+  auto start = *positions.begin();
+  queue.push(start);
+  visited.insert(start);
+
+  while (!queue.empty()) {
+    Position current = queue.front();
+    queue.pop();
+
+    // Check all adjacent positions
+    std::vector<Position> adjacents;
+    if (current.x > 0) adjacents.push_back(current.up());
+    if (current.x < 2) adjacents.push_back(current.down());
+    if (current.y > 0) adjacents.push_back(current.left());
+    if (current.y < 4) adjacents.push_back(current.right());
+
+    for (const auto& adj : adjacents) {
+      if (positions.contains(adj) && !visited.contains(adj)) {
+        queue.push(adj);
+        visited.insert(adj);
+      }
     }
   }
-  // 下のマス
-  if (pos.x < 2) {
-    Position newPos = pos.down();
-    if (isRoom(fields.at(newPos).getType())) {
-      hasAdjacentRoom = true;
-    }
-  }
-  // 左のマス
-  if (pos.y > 0) {
-    Position newPos = pos.left();
-    if (isRoom(fields.at(newPos).getType())) {
-      hasAdjacentRoom = true;
-    }
-  }
-  // 右のマス
-  if (pos.y < 4) {
-    Position newPos = pos.right();
-    if (isRoom(fields.at(newPos).getType())) {
-      hasAdjacentRoom = true;
-    }
-  }
-  return hasAdjacentRoom;
+
+  return visited.size() == positions.size();
 }
 
-bool Farm::buildRoom(Position pos, RoomType roomType) {
-  if (!canBuildRoom(pos, roomType)) return false;
+bool Farm::canBuildRoom(const std::set<Position>& positions,
+                        const RoomType roomType) const {
+  if (this->roomType != roomType) return false;
+  for (const auto& pos : positions) {
+    if (!canPlace(pos)) return false;
+  }
+  if (!isConnected(positions)) return false;
+
+  std::set<Position> existingRooms;
+  // 既存の部屋の位置を収集
+  for (int x = 0; x < 3; x++) {
+    for (int y = 0; y < 5; y++) {
+      Position pos(x, y);
+      if (isRoom(fields.at(pos).getType())) {
+        existingRooms.insert(pos);
+      }
+    }
+  }
+
+  // Check if new rooms are adjacent to existing rooms
+  bool hasAdjacentToExisting = false;
+  for (const auto& pos : positions) {
+    std::vector<Position> adjacents;
+    if (pos.x > 0) adjacents.push_back(pos.up());
+    if (pos.x < 2) adjacents.push_back(pos.down());
+    if (pos.y > 0) adjacents.push_back(pos.left());
+    if (pos.y < 4) adjacents.push_back(pos.right());
+
+    for (const auto& adj : adjacents) {
+      if (existingRooms.contains(adj)) {
+        hasAdjacentToExisting = true;
+        break;
+      }
+    }
+    if (hasAdjacentToExisting) break;
+  }
+
+  return hasAdjacentToExisting;
+}
+
+bool Farm::buildRoom(const std::set<Position>& positions, RoomType roomType) {
+  if (!canBuildRoom(positions, roomType)) return false;
 
   if (roomType == RoomType::WOOD) {
-    fields[pos].buildWoodRoom();
+    for (const auto& pos : positions) {
+      fields[pos].buildWoodRoom();
+    }
   } else if (roomType == RoomType::CLAY) {
-    fields[pos].buildClayRoom();
+    for (const auto& pos : positions) {
+      fields[pos].buildClayRoom();
+    }
   } else if (roomType == RoomType::STONE) {
-    fields[pos].buildStoneRoom();
+    for (const auto& pos : positions) {
+      fields[pos].buildStoneRoom();
+    }
   }
   numRooms++;
   return true;
 }
 
-bool Farm::canPlowField(Position pos) const {
-  if (!canPlace(pos)) return false;
+bool Farm::canPlowField(const std::set<Position>& positions) const {
+  for (const auto& pos : positions) {
+    if (!canPlace(pos)) return false;
+  }
+  if (!isConnected(positions)) return false;
 
   // まずフィールド内にFIELDが存在するかチェック
   bool hasAnyField =
@@ -498,41 +543,42 @@ bool Farm::canPlowField(Position pos) const {
   // FIELDが一つも無い場合はtrueを返す
   if (!hasAnyField) return true;
 
-  // 上下左右に隣接するマスをチェック
-  bool hasAdjacentField = false;
-  // 上のマス
-  if (pos.x > 0) {
-    Position newPos = pos.up();
-    if (fields.at(newPos).getType() == FieldType::FIELD) {
-      hasAdjacentField = true;
+  std::set<Position> existingFields;
+  // 既存の部屋の位置を収集
+  for (int x = 0; x < 3; x++) {
+    for (int y = 0; y < 5; y++) {
+      Position pos(x, y);
+      if (fields.at(pos).getType() == FieldType::FIELD) {
+        existingFields.insert(pos);
+      }
     }
   }
-  // 下のマス
-  if (pos.x < 2) {
-    Position newPos = pos.down();
-    if (fields.at(newPos).getType() == FieldType::FIELD) {
-      hasAdjacentField = true;
+
+  // Check if new rooms are adjacent to existing rooms
+  bool hasAdjacentToExisting = false;
+  for (const auto& pos : positions) {
+    std::vector<Position> adjacents;
+    if (pos.x > 0) adjacents.push_back(pos.up());
+    if (pos.x < 2) adjacents.push_back(pos.down());
+    if (pos.y > 0) adjacents.push_back(pos.left());
+    if (pos.y < 4) adjacents.push_back(pos.right());
+
+    for (const auto& adj : adjacents) {
+      if (existingFields.contains(adj)) {
+        hasAdjacentToExisting = true;
+        break;
+      }
     }
+    if (hasAdjacentToExisting) break;
   }
-  // 左のマス
-  if (pos.y > 0) {
-    Position newPos = pos.left();
-    if (fields.at(newPos).getType() == FieldType::FIELD) {
-      hasAdjacentField = true;
-    }
-  }
-  // 右のマス
-  if (pos.y < 4) {
-    Position newPos = pos.right();
-    if (fields.at(newPos).getType() == FieldType::FIELD) {
-      hasAdjacentField = true;
-    }
-  }
-  return hasAdjacentField;
+
+  return hasAdjacentToExisting;
 }
 
-bool Farm::plowField(Position pos) {
-  if (!canPlowField(pos)) return false;
-  fields[pos].plow();
+bool Farm::plowField(const std::set<Position>& positions) {
+  if (!canPlowField(positions)) return false;
+  for (const auto& pos : positions) {
+    fields[pos].plow();
+  }
   return true;
 }

@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <set>
+
 class FarmTest : public ::testing::Test {
  protected:
   Farm farm;
@@ -16,17 +18,36 @@ TEST_F(FarmTest, InitialState) {
 
 TEST_F(FarmTest, PlowField) {
   // 木の家の上には耕せない
-  EXPECT_FALSE(farm.plowField(Position(1, 0)));
+  auto pos1 = std::set<Position>{Position(1, 0)};
+  EXPECT_FALSE(farm.plowField(pos1));
   // 最初の畑は任意の場所に作れる
-  auto pos1 = Position(1, 1);
-  EXPECT_TRUE(farm.plowField(pos1));
-  EXPECT_EQ(farm.getField(pos1).getType(), FieldType::FIELD);
+  auto pos2 = std::set<Position>{Position(0, 1)};
+  EXPECT_TRUE(farm.plowField(pos2));
+  for (auto& pos : pos2) {
+    EXPECT_EQ(farm.getField(pos).getType(), FieldType::FIELD);
+  }
 
   // 2つ目の畑は最初の畑に隣接している必要がある
-  auto pos2 = Position(1, 2);
-  EXPECT_TRUE(farm.plowField(pos2));
-  EXPECT_EQ(farm.getField(pos2).getType(), FieldType::FIELD);
-  EXPECT_FALSE(farm.plowField(Position(0, 0)));
+  auto pos3 = std::set<Position>{Position(0, 2)};
+  EXPECT_TRUE(farm.plowField(pos3));
+  for (auto& pos : pos3) {
+    EXPECT_EQ(farm.getField(pos).getType(), FieldType::FIELD);
+  }
+  // 離れた場所には作れない
+  auto pos4 = std::set<Position>{Position(0, 4)};
+  EXPECT_FALSE(farm.plowField(pos4));
+  // 離れた場所には作れない2
+  auto pos5 = std::set<Position>{Position(0, 4), Position(1, 4)};
+  EXPECT_FALSE(farm.plowField(pos5));
+  // くっついているのは同時に耕せる
+  auto pos6 = std::set<Position>{Position(0, 3), Position(0, 4)};
+  EXPECT_TRUE(farm.plowField(pos6));
+  for (auto& pos : pos6) {
+    EXPECT_EQ(farm.getField(pos).getType(), FieldType::FIELD);
+  }
+  // 空のsetでは建設できない
+  auto pos7 = std::set<Position>{};
+  EXPECT_FALSE(farm.plowField(pos7));
 }
 
 TEST_F(FarmTest, BuildFence) {
@@ -197,15 +218,31 @@ TEST_F(FarmTest, LiveStock) {
 
 TEST_F(FarmTest, BuildRooms) {
   // 木の部屋を建設
-  auto pos1 = Position(0, 0);
+  auto pos1 = std::set<Position>{Position(0, 0)};
   EXPECT_TRUE(farm.buildRoom(pos1, RoomType::WOOD));
-  EXPECT_EQ(farm.getField(pos1).getType(), FieldType::WOOD_ROOM);
+  for (auto& pos : pos1) {
+    EXPECT_EQ(farm.getField(pos).getType(), FieldType::WOOD_ROOM);
+  }
   // 孤立した場所には建設できない
-  EXPECT_FALSE(farm.buildRoom(Position(0, 4), RoomType::WOOD));
+  auto pos2 = std::set<Position>{Position(0, 4)};
+  EXPECT_FALSE(farm.buildRoom(pos2, RoomType::WOOD));
   // 木の家の時は粘土の家は建設できない
-  EXPECT_FALSE(farm.buildRoom(Position(2, 1), RoomType::CLAY));
+  auto pos3 = std::set<Position>{Position(2, 1)};
+  EXPECT_FALSE(farm.buildRoom(pos3, RoomType::CLAY));
   // 木の家の時は石の家は建設できない
-  EXPECT_FALSE(farm.buildRoom(Position(2, 1), RoomType::STONE));
+  EXPECT_FALSE(farm.buildRoom(pos3, RoomType::STONE));
+  auto pos4 = std::set<Position>{Position(0, 1), Position(0, 2), Position(0, 3),
+                                 Position(0, 4)};
+  EXPECT_TRUE(farm.buildRoom(pos4, RoomType::WOOD));
+  for (auto& pos : pos4) {
+    EXPECT_EQ(farm.getField(pos).getType(), FieldType::WOOD_ROOM);
+  }
+  // 空のsetでは建設できない
+  auto pos5 = std::set<Position>{};
+  EXPECT_FALSE(farm.buildRoom(pos5, RoomType::WOOD));
+  // 離れた場所には建設できない
+  auto pos6 = std::set<Position>{Position(2, 4), Position(2, 3)};
+  EXPECT_FALSE(farm.buildRoom(pos6, RoomType::WOOD));
 }
 
 TEST_F(FarmTest, LiveStockSpecialCases) {

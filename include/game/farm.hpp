@@ -111,10 +111,12 @@ class Farm {
   RoomType roomType;
 
   bool canPlace(Position pos) const;
-  bool canBuildRoom(Position pos, RoomType roomType) const;
+  bool isConnected(const std::set<Position>& positions) const;
+  bool canBuildRoom(const std::set<Position>& pos,
+                    const RoomType roomType) const;
   std::pair<bool, std::vector<std::set<Position>>> canBuildFence(
       const std::vector<FencePosition>& newFences) const;
-  bool canPlowField(Position pos) const;
+  bool canPlowField(const std::set<Position>& positions) const;
   bool isFenceAt(Position pos, FencePosition::Edge edge) const;
   std::pair<bool, std::set<Position>> isEnclosed(
       const Position& start, const std::set<FencePosition>& fences) const;
@@ -135,9 +137,9 @@ class Farm {
 
  public:
   Farm();
-  bool buildRoom(Position pos, RoomType roomType);
+  bool buildRoom(const std::set<Position>& pos, RoomType roomType);
   bool buildFence(const std::vector<FencePosition>& newfences);
-  bool plowField(Position pos);
+  bool plowField(const std::set<Position>& positions);
   bool buildStable(Position pos);
   bool placeLivestock(const std::vector<LivestockPlacement>& placements);
   // const参照を返すgetter
