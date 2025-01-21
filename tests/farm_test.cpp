@@ -8,13 +8,6 @@ class FarmTest : public ::testing::Test {
  protected:
   Farm farm;
 };
-/*
-TEST_F(FarmTest, InitialState) {
-    // 初期状態で2部屋あることを確認
-    EXPECT_EQ(farm.getNumRooms(), 2);
-    EXPECT_EQ(farm.getNumStables(), 0);
-}
-*/
 
 TEST_F(FarmTest, PlowField) {
   // 木の家の上には耕せない
