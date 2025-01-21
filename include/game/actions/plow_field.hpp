@@ -7,7 +7,7 @@ class PlowField : public BaseAction {
   bool execute(Player& player, const ActionArgs& args) override {
     if (auto* plowArgs = std::get_if<PlowFieldArgs>(&args)) {
       // Positionを使用して畑を耕す
-      if (player.getFarm().plowField(plowArgs->position)) {
+      if (player.getFarm().plowField(plowArgs->positions)) {
         return true;
       }
     }

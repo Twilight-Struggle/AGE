@@ -6,7 +6,7 @@
 struct DayLabourArgs {};
 
 struct PlowFieldArgs {
-  Position position;
+  std::set<Position> positions;
 };
 
 // struct BuildFenceArgs {
