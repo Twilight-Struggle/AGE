@@ -17,13 +17,14 @@ Farm::Farm() : numRooms(2), numStables(0), roomType(RoomType::WOOD) {
   fields[Position(2, 0)].buildWoodRoom();
 }
 
-bool Farm::canPlace(Position pos) const {
+bool Farm::canPlace(const Position& pos) const {
   // 座標が有効範囲内かチェック
   return pos.x >= 0 && pos.x < 3 && pos.y >= 0 && pos.y < 5 &&
          fields.at(pos).getType() == FieldType::EMPTY;
 }
 
-bool Farm::isFenceAt(Position pos, FencePosition::Edge edge) const {
+bool Farm::isFenceAt(const Position& pos,
+                     const FencePosition::Edge& edge) const {
   return std::find_if(fences.begin(), fences.end(),
                       [pos, edge](const FencePosition& fencePos) {
                         return fencePos.getPosition().x == pos.x &&
@@ -301,14 +302,14 @@ bool Farm::buildFence(const std::vector<FencePosition>& newFences) {
   return true;
 }
 
-bool Farm::canBuildStable(Position pos) const {
+bool Farm::canBuildStable(const Position& pos) const {
   // 座標が有効範囲内かチェック
   return pos.x >= 0 && pos.x < 3 && pos.y >= 0 && pos.y < 5 &&
          (fields.at(pos).getType() == FieldType::EMPTY ||
           fields.at(pos).getType() == FieldType::PASTURE);
 }
 
-bool Farm::buildStable(Position pos) {
+bool Farm::buildStable(const Position& pos) {
   if (!canBuildStable(pos)) return false;
   if (numStables >= 4) return false;
   fields[pos].stable();

@@ -1,17 +1,17 @@
 #include "game/resource.hpp"
 
-Resource::Resource(ResourceType type, int amount)
+Resource::Resource(const ResourceType type, const int amount)
     : type(type), amount(amount) {}
 
 ResourceType Resource::getType() const { return type; }
 
 int Resource::getAmount() const { return this->amount; }
 
-void Resource::add(int amount) { this->amount += amount; }
+void Resource::add(const int amount) { this->amount += amount; }
 
 void Resource::zero() { this->amount = 0; }
 
-bool Resource::subtract(int amount) {
+bool Resource::subtract(const int amount) {
   if (this->amount >= amount) {
     this->amount -= amount;
     return true;

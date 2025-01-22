@@ -40,15 +40,15 @@ TEST_F(FieldTest, BuildRooms) {
 TEST_F(FieldTest, AddContent) {
   // 畑に作物を追加
   field.plow();
-  Resource grain(ResourceType::GRAIN, 1);
+  const Resource grain(ResourceType::GRAIN, 1);
   EXPECT_TRUE(field.addContent(grain));
 
   // 同じタイプの作物を追加
-  Resource moreGrain(ResourceType::GRAIN, 2);
+  const Resource moreGrain(ResourceType::GRAIN, 2);
   EXPECT_TRUE(field.addContent(moreGrain));
 
   // 畑に家畜を追加しようとする（失敗するはず）
-  Resource sheep(ResourceType::SHEEP, 1);
+  const Resource sheep(ResourceType::SHEEP, 1);
   EXPECT_FALSE(field.addContent(sheep));
 
   // 牧場に家畜を追加
@@ -63,7 +63,7 @@ TEST_F(FieldTest, AddContent) {
 // リソースの削除テスト
 TEST_F(FieldTest, RemoveContent) {
   field.plow();
-  Resource grain(ResourceType::GRAIN, 3);
+  const Resource grain(ResourceType::GRAIN, 3);
   field.addContent(grain);
 
   // 一部を削除

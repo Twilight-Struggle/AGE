@@ -59,7 +59,8 @@ class FencePosition {
   Edge getEdge() const { return edge; }
 
   // コンストラクタでバリデーション
-  static std::optional<FencePosition> create(Position pos, Edge edge) {
+  static std::optional<FencePosition> create(const Position& pos,
+                                             const Edge& edge) {
     FencePosition fencePos(pos, edge);
     if (fencePos.isValid()) {
       return fencePos;
@@ -79,7 +80,7 @@ class FencePosition {
   }
 
  private:
-  FencePosition(Position pos, Edge edge) : pos(pos), edge(edge) {}
+  FencePosition(const Position& pos, const Edge& edge) : pos(pos), edge(edge) {}
   Position pos;
   Edge edge;
   // 有効な柵の位置かチェック
@@ -110,14 +111,14 @@ class Farm {
   int numStables;
   RoomType roomType;
 
-  bool canPlace(Position pos) const;
+  bool canPlace(const Position& pos) const;
   bool isConnected(const std::set<Position>& positions) const;
   bool canBuildRoom(const std::set<Position>& pos,
                     const RoomType roomType) const;
   std::pair<bool, std::vector<std::set<Position>>> canBuildFence(
       const std::vector<FencePosition>& newFences) const;
   bool canPlowField(const std::set<Position>& positions) const;
-  bool isFenceAt(Position pos, FencePosition::Edge edge) const;
+  bool isFenceAt(const Position& pos, const FencePosition::Edge& edge) const;
   std::pair<bool, std::set<Position>> isEnclosed(
       const Position& start, const std::set<FencePosition>& fences) const;
   std::vector<std::set<Position>> getEnclosedAreas(
@@ -125,9 +126,9 @@ class Farm {
   std::pair<bool, std::vector<std::set<Position>>> isValidEnclosure(
       const std::vector<std::set<Position>>& newEnclosure,
       const std::set<FencePosition>& tempFences) const;
-  bool canBuildStable(Position pos) const;
+  bool canBuildStable(const Position& pos) const;
   int getStableCount(const std::set<Position>& enclosure) const;
-  int getMaxCapacity(size_t enclosureIndex) const;
+  int getMaxCapacity(const size_t enclosureIndex) const;
   bool validateLivestockPlacement(
       const std::vector<LivestockPlacement>& placements) const;
   bool validateSinglePositionPlacement(const Position& pos,
@@ -140,7 +141,7 @@ class Farm {
   bool buildRoom(const std::set<Position>& pos, RoomType roomType);
   bool buildFence(const std::vector<FencePosition>& newfences);
   bool plowField(const std::set<Position>& positions);
-  bool buildStable(Position pos);
+  bool buildStable(const Position& pos);
   bool placeLivestock(const std::vector<LivestockPlacement>& placements);
   // const参照を返すgetter
   const Field& getField(const Position& pos) const { return fields.at(pos); }

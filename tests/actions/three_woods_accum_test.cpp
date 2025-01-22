@@ -9,11 +9,11 @@ class ThreeWoodsAccumTest : public ::testing::Test {
 };
 
 TEST_F(ThreeWoodsAccumTest, ExecuteGivesThreeWood) {
-  int initial_wood = player.getResource(ResourceType::WOOD).getAmount();
+  const int initial_wood = player.getResource(ResourceType::WOOD).getAmount();
 
   action.roundStart();
-  auto args = NoArgs{};
-  bool result = action.execute(player, args);
+  const auto args = NoArgs{};
+  const bool result = action.execute(player, args);
 
   EXPECT_TRUE(result);
   EXPECT_EQ(player.getResource(ResourceType::WOOD).getAmount(),
@@ -24,15 +24,13 @@ TEST_F(ThreeWoodsAccumTest, GetActionTypeReturnsThreeWoodsAccum) {
   EXPECT_EQ(action.getActionType(), ActionType::THREE_WOODS_ACCUM);
 }
 
-// 複数回実行できるないことを確認
 TEST_F(ThreeWoodsAccumTest, CannotExecuteMultipleTimes) {
-  int initial_wood = player.getResource(ResourceType::WOOD).getAmount();
+  const int initial_wood = player.getResource(ResourceType::WOOD).getAmount();
   action.roundStart();
 
-  // 2回実行
-  auto args = NoArgs{};
+  const auto args = NoArgs{};
   action.execute(player, args);
-  bool second_result = action.execute(player, args);
+  const bool second_result = action.execute(player, args);
 
   EXPECT_FALSE(second_result);
   EXPECT_EQ(player.getResource(ResourceType::WOOD).getAmount(),

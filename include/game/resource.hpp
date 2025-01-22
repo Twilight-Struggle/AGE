@@ -21,11 +21,11 @@ class Resource {
 
  public:
   Resource() : type(ResourceType::FOOD), amount(0) {}
-  Resource(ResourceType type, int amount);
+  Resource(const ResourceType type, const int amount);
   ResourceType getType() const;
   int getAmount() const;
-  void add(int amount);
-  bool subtract(int amount);
+  void add(const int amount);
+  bool subtract(const int amount);
   void zero();
 
   // 演算子のオーバーロード

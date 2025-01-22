@@ -6,7 +6,7 @@
 
 class BuildFencesTest : public ::testing::Test {
  protected:
-  Player player{1};  // プレイヤーID: 1
+  Player player{1};
   BuildFences action;
 };
 

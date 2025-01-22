@@ -32,7 +32,7 @@ class Field {
   bool removeContent(const Resource& resource);
 };
 
-inline bool isRoom(FieldType type) {
+inline bool isRoom(const FieldType& type) {
   return type == FieldType::WOOD_ROOM || type == FieldType::CLAY_ROOM ||
          type == FieldType::STONE_ROOM;
 }
