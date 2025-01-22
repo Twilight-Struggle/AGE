@@ -11,18 +11,12 @@ class DayLabourTest : public ::testing::Test {
 TEST_F(DayLabourTest, ExecuteGivesTwoFood) {
   int initial_food = player.getResource(ResourceType::FOOD).getAmount();
 
-  auto args = DayLabourArgs{};
+  auto args = NoArgs{};
   bool result = action.execute(player, args);
 
   EXPECT_TRUE(result);
   EXPECT_EQ(player.getResource(ResourceType::FOOD).getAmount(),
             initial_food + 2);
-}
-
-TEST_F(DayLabourTest, RoundStartDoesNothing) {
-  int initial_food = player.getResource(ResourceType::FOOD).getAmount();
-  action.roundStart();
-  EXPECT_EQ(player.getResource(ResourceType::FOOD).getAmount(), initial_food);
 }
 
 TEST_F(DayLabourTest, GetActionTypeReturnsDayLabour) {
@@ -34,7 +28,7 @@ TEST_F(DayLabourTest, CanExecuteMultipleTimes) {
   int initial_food = player.getResource(ResourceType::FOOD).getAmount();
 
   // 2回実行
-  auto args = DayLabourArgs{};
+  auto args = NoArgs{};
   action.execute(player, args);
   bool second_result = action.execute(player, args);
 

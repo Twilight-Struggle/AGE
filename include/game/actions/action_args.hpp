@@ -3,7 +3,7 @@
 
 #include "game/farm.hpp"
 
-struct DayLabourArgs {};
+struct NoArgs {};
 
 struct PlowFieldArgs {
   std::set<Position> positions;
@@ -19,4 +19,4 @@ struct PlowFieldArgs {
 // };
 
 // 他のアクションに必要な引数も同様に定義
-using ActionArgs = std::variant<DayLabourArgs, PlowFieldArgs>;
+using ActionArgs = std::variant<NoArgs, PlowFieldArgs>;
