@@ -29,6 +29,6 @@ TEST_F(PlowFieldTest, ExecutePlowsField) {
 
 TEST_F(PlowFieldTest, RoundStartDoesNothing) { action.roundStart(); }
 
-TEST_F(PlowFieldTest, GetActionTypeReturnsDayLabour) {
+TEST_F(PlowFieldTest, GetActionTypeReturnsPlowField) {
   EXPECT_EQ(action.getActionType(), ActionType::PLOW_FIELD);
 }

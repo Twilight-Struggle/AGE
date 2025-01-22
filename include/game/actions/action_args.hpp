@@ -9,9 +9,9 @@ struct PlowFieldArgs {
   std::set<Position> positions;
 };
 
-// struct BuildFenceArgs {
-//   std::vector<FencePosition> fencePositions;
-// };
+struct BuildFenceArgs {
+  std::vector<FencePosition> fencePositions;
+};
 
 // struct BuildRoomArgs {
 //   Position position;
@@ -19,4 +19,4 @@ struct PlowFieldArgs {
 // };
 
 // 他のアクションに必要な引数も同様に定義
-using ActionArgs = std::variant<NoArgs, PlowFieldArgs>;
+using ActionArgs = std::variant<NoArgs, PlowFieldArgs, BuildFenceArgs>;
