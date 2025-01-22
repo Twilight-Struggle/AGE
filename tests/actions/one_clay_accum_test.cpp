@@ -8,8 +8,8 @@ class OneClayAccumTest : public ::testing::Test {
   OneClayAccum action;
 };
 
-TEST_F(OneClayAccumTest, ExecuteGivesThreeWood) {
-  int initial_wood = player.getResource(ResourceType::CLAY).getAmount();
+TEST_F(OneClayAccumTest, ExecuteGivesOneClay) {
+  int initial_resource = player.getResource(ResourceType::CLAY).getAmount();
 
   action.roundStart();
   auto args = NoArgs{};
@@ -17,16 +17,16 @@ TEST_F(OneClayAccumTest, ExecuteGivesThreeWood) {
 
   EXPECT_TRUE(result);
   EXPECT_EQ(player.getResource(ResourceType::CLAY).getAmount(),
-            initial_wood + 1);
+            initial_resource + 1);
 }
 
-TEST_F(OneClayAccumTest, GetActionTypeReturnsThreeWoodsAccum) {
+TEST_F(OneClayAccumTest, GetActionTypeReturnsOneClayAccum) {
   EXPECT_EQ(action.getActionType(), ActionType::ONE_CLAY_ACCUM);
 }
 
 // 複数回実行できるないことを確認
 TEST_F(OneClayAccumTest, CannotExecuteMultipleTimes) {
-  int initial_wood = player.getResource(ResourceType::CLAY).getAmount();
+  int initial_resource = player.getResource(ResourceType::CLAY).getAmount();
   action.roundStart();
 
   // 2回実行
@@ -36,5 +36,5 @@ TEST_F(OneClayAccumTest, CannotExecuteMultipleTimes) {
 
   EXPECT_FALSE(second_result);
   EXPECT_EQ(player.getResource(ResourceType::CLAY).getAmount(),
-            initial_wood + 1);
+            initial_resource + 1);
 }
