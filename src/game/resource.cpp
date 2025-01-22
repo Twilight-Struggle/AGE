@@ -1,53 +1,48 @@
 #include "game/resource.hpp"
 
-Resource::Resource(ResourceType type, int amount) : type(type), amount(amount) {}
+Resource::Resource(ResourceType type, int amount)
+    : type(type), amount(amount) {}
 
-ResourceType Resource::getType() const {
-    return type;
-}
+ResourceType Resource::getType() const { return type; }
 
-int Resource::getAmount() const {
-    return this->amount;
-}
+int Resource::getAmount() const { return this->amount; }
 
-void Resource::add(int amount) {
-    this->amount += amount;
-}
+void Resource::add(int amount) { this->amount += amount; }
 
 bool Resource::subtract(int amount) {
-    if (this->amount >= amount) {
-        this->amount -= amount;
-        return true;
-    }
-    return false;
+  if (this->amount >= amount) {
+    this->amount -= amount;
+    return true;
+  }
+  return false;
 }
 
 Resource& Resource::operator+=(const Resource& other) {
-    if (this->type == other.type) {
-        this->amount += other.amount;
-    }
-    return *this;
+  if (this->type == other.type) {
+    this->amount += other.amount;
+  }
+  return *this;
 }
 
 Resource& Resource::operator-=(const Resource& other) {
-    if (this->type == other.type) {
-        this->amount -= other.amount;
-    }
-    return *this;
+  if (this->type == other.type) {
+    this->amount -= other.amount;
+  }
+  return *this;
 }
 
 Resource Resource::operator+(const Resource& other) const {
-    Resource result(*this);
-    result += other;
-    return result;
+  Resource result(*this);
+  result += other;
+  return result;
 }
 
 Resource Resource::operator-(const Resource& other) const {
-    Resource result(*this);
-    result -= other;
-    return result;
+  Resource result(*this);
+  result -= other;
+  return result;
 }
 
 bool Resource::operator==(const Resource& other) const {
-    return (this->type == other.type && this->amount == other.amount);
+  return (this->type == other.type && this->amount == other.amount);
 }
