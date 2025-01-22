@@ -71,5 +71,6 @@ add_agricola_test_actions(day_labour_test)
 add_agricola_test_actions(plow_field_test)
 add_agricola_test_actions(gain_grain_test)
 add_agricola_test_actions(four_woods_accum_test)
+add_agricola_test_actions(three_woods_accum_test)
 
 # add_executable(hello_world src/main.cpp)
