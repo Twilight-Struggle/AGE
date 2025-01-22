@@ -9,6 +9,8 @@ int Resource::getAmount() const { return this->amount; }
 
 void Resource::add(int amount) { this->amount += amount; }
 
+void Resource::zero() { this->amount = 0; }
+
 bool Resource::subtract(int amount) {
   if (this->amount >= amount) {
     this->amount -= amount;
