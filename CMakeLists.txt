@@ -74,5 +74,6 @@ add_agricola_test_actions(four_woods_accum_test)
 add_agricola_test_actions(three_woods_accum_test)
 add_agricola_test_actions(one_clay_accum_test)
 add_agricola_test_actions(one_reed_accum_test)
+add_agricola_test_actions(fishing_test)
 
 # add_executable(hello_world src/main.cpp)
